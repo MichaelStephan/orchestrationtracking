@@ -79,6 +79,10 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
         return json;
     }
 
+    private void registerCassandraStructures() {
+        
+    }
+
     private void registerHandlers() {
         vertx.eventBus().registerHandler(CREATE_AND_START_WORKFLOW_ADDRESS, (Message<JsonObject> message) -> {
             execute(message, () -> {

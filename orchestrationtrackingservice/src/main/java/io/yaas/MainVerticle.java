@@ -3,6 +3,7 @@ package io.yaas;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Future;
 import org.vertx.java.core.impl.DefaultFutureResult;
+import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
@@ -38,8 +39,9 @@ public class MainVerticle extends Verticle {
 
     public void start() {
         Future<Void> serviceAPILoaded = new DefaultFutureResult<>();
-
         Future<Void> serviceLoaded = new DefaultFutureResult<>();
+        Future<Void> cassandraLoaded = new DefaultFutureResult<>();
+
         serviceLoaded.setHandler((result) -> {
             if (result.succeeded()) {
                 JsonObject config = new JsonObject();
@@ -51,8 +53,24 @@ public class MainVerticle extends Verticle {
             }
         });
 
-        container.deployVerticle("io.yaas.OrchestrationTrackingServiceVerticle", 1, (result) -> {
-            propagateFutureResult(result, serviceLoaded);
+        cassandraLoaded.setHandler((result) -> {
+            if (result.succeeded()) {
+                container.deployVerticle("io.yaas.OrchestrationTrackingServiceVerticle", 1, (result1) -> {
+                    propagateFutureResult(result1, serviceLoaded);
+                });
+            }
         });
+
+        {
+            JsonObject config = new JsonObject();
+            config.putString("address", "persistor");
+            config.putArray("hosts", new JsonArray().addString("localhost"));
+            config.putNumber("port", 9042);
+            config.putString("keyspace", "orchestrationtracking");
+
+            container.deployModule("com.insanitydesign~vertx-mod-cassandra-persistor~0.4.1", config, 1, (result) -> {
+                propagateFutureResult(result, cassandraLoaded);
+            });
+        }
     }
 }
