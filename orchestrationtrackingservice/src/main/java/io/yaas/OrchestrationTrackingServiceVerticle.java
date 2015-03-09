@@ -21,6 +21,7 @@ import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Future;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.impl.DefaultFutureResult;
+import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
@@ -45,41 +46,6 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
 
     private enum TaskState {COMPLETED, FAILED}
 
-    void execute(Message<?> message, Command command) {
-        try {
-            Future<?> future = command.execute();
-            future.setHandler((f) -> {
-                if (f.succeeded()) {
-                    JsonObject result = JsonObject.class.cast(f.result());
-                    if (result == null) {
-                        result = new JsonObject();
-                    }
-                    message.reply(result.putString("status", "ok"));
-                } else {
-                    container.logger().error(f.cause());
-                    JsonObject err = new JsonObject();
-                    err.putString("status", "error");
-                    err.putString("message", f.cause().getClass().getSimpleName() + ": " + f.cause().getMessage());
-                    message.reply(err);
-                }
-            });
-        } catch (Exception e) {
-            container.logger().error(e);
-            JsonObject err = new JsonObject();
-            err.putString("status", "error");
-            err.putString("message", e.getClass().getSimpleName() + ": " + e.getMessage());
-            message.reply(err);
-        }
-    }
-
-    private JsonObject getCreateAndStartWorkflowResponse(String id) {
-        checkNotNull(id);
-
-        JsonObject json = new JsonObject();
-        json.putString("id", id);
-        return json;
-    }
-
     private void registerCassandraStructures() {
         {
             Future<Void> createKeyspace = new DefaultFutureResult<>();
@@ -94,7 +60,7 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
             });
 
             createKeyspace.setHandler((ignore) -> {
-                vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "raw").putString("statement", "CREATE TABLE yaas.workflows(wfid uuid, wfstate text, PRIMARY KEY(wfid))"), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+                vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "raw").putString("statement", "CREATE TABLE yaas.workflows(wfid uuid, name text, version int, wfstate text, PRIMARY KEY(wfid))"), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore1) -> {
                         container.logger().info("CREATE TABLE yaas.workflows  successful");
                     }, (ignore1) -> {
@@ -116,30 +82,30 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
 
     private void registerHandlers() {
         vertx.eventBus().registerHandler(CREATE_AND_START_WORKFLOW_ADDRESS, (Message<JsonObject> message) -> {
-            execute(message, () -> {
+            Common.execute(container, message, (result) -> {
                 container.logger().info("Received CREATE_AND_START_WORKFLOW_ADDRESS message: " + checkNotNull(message).body().toString());
-                return createAndStartWorkflow(checkNotNull(message.body().getString("name")), message.body().getInteger("version"));
+                createAndStartWorkflow(result, checkNotNull(message.body().getString("name")), message.body().getInteger("version"));
             });
         });
 
         vertx.eventBus().registerHandler(UPDATE_WORKFLOW_ADDRESS, (Message<JsonObject> message) -> {
-            execute(message, () -> {
+            Common.execute(container, message, (result) -> {
                 container.logger().info("Received UPDATE_WORKFLOW_ADDRESS message: " + checkNotNull(message).body().toString());
-                return updateWorkflow(checkNotNull(message.body().getString("wid")), WorkflowState.valueOf(checkNotNull(message.body().getString("state")).toUpperCase()));
+                updateWorkflow(result, checkNotNull(message.body().getString("wid")), WorkflowState.valueOf(checkNotNull(message.body().getString("state")).toUpperCase()));
             });
         });
 
         vertx.eventBus().registerHandler(CREATE_AND_START_TASK_ADDRESS, (Message<JsonObject> message) -> {
-            execute(message, () -> {
+            Common.execute(container, message, (result) -> {
                 container.logger().info("Received CREATE_AND_START_TASK_ADDRESS message: " + checkNotNull(message).body().toString());
-                return createAndStartTask(checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("tid")));
+                createAndStartTask(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("tid")));
             });
         });
 
         vertx.eventBus().registerHandler(UPDATE_TASK_ADDRESS, (Message<JsonObject> message) -> {
-            execute(message, () -> {
+            Common.execute(container, message, (result) -> {
                 container.logger().info("Received UPDATE_TASK_ADDRESS message: " + checkNotNull(message).body().toString());
-                return updateTask(checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("tid")), TaskState.valueOf(checkNotNull(message.body().getString("state")).toUpperCase()));
+                updateTask(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("tid")), TaskState.valueOf(checkNotNull(message.body().getString("state")).toUpperCase()));
             });
         });
 
@@ -155,19 +121,25 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
         container.logger().info("OrchestrationTrackingServiceVerticle started");
     }
 
-    private Future<JsonObject> createAndStartWorkflow(String name, int version) {
-        return new DefaultFutureResult<JsonObject>().setResult(getCreateAndStartWorkflowResponse(UUID.randomUUID().toString()));
+    private void createAndStartWorkflow(Future<JsonObject> result, String name, int version) {
+        String wid = UUID.randomUUID().toString();
+        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "INSERT INTO yaas.workflows (wfid, name, version) VALUES (?,?,?)").putArray("values", new JsonArray().addArray(new JsonArray().addString(wid).addString(name).addNumber(version))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+            Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
+                container.logger().info("INSERT INTO yaas.workflows successful");
+                result.setResult(new JsonObject().putString("id", wid));
+            }, (ignore) -> {
+                container.logger().info("INSERT INTO yaas.workflows failed", asyncResult.cause());
+                result.setFailure(asyncResult.cause());
+            });
+        });
     }
 
-    private Future<Void> updateWorkflow(String wif, WorkflowState state) {
-        return new DefaultFutureResult<Void>().setResult(null);
+    private void updateWorkflow(Future<Void> result, String wif, WorkflowState state) {
     }
 
-    private Future<Void> createAndStartTask(String wif, String tid) {
-        return new DefaultFutureResult<Void>().setResult(null);
+    private void createAndStartTask(Future<Void> result, String wif, String tid) {
     }
 
-    private Future<Void> updateTask(String wif, String tid, TaskState state) {
-        return new DefaultFutureResult<Void>().setResult(null);
+    private void updateTask(Future<Void> result, String wif, String tid, TaskState state) {
     }
 }
