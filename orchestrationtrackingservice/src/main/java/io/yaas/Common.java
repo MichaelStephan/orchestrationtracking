@@ -75,9 +75,4 @@ public class Common {
             onError.handle(null);
         }
     }
-
-//    public static JsonObject error(Throwable e) {
-//        return new JsonObject().putString("status", "error").putString("message", e.getClass().getSimpleName() + ": " + e.getMessage());
-//    }
-
 }
