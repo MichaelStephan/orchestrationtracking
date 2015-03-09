@@ -17,182 +17,120 @@ package io.yaas;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 
-import org.vertx.java.core.AsyncResult;
+import org.vertx.java.core.Future;
 import org.vertx.java.core.eventbus.Message;
-import org.vertx.java.core.http.HttpServer;
-import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.core.http.RouteMatcher;
+import org.vertx.java.core.impl.DefaultFutureResult;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
 import java.util.UUID;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /*
 This is a simple Java verticle which receives `ping` messages on the event bus and sends back `pong` replies
  */
 public class OrchestrationTrackingServiceVerticle extends Verticle {
 
-    private final static int DEFAULT_API_HTTP_PORT = 8080;
+    public final static String CREATE_AND_START_WORKFLOW_ADDRESS = "workflow.create_and_start";
 
-    private final static long COMMUNICATON_TIMEOUT = 10000;
+    public final static String UPDATE_WORKFLOW_ADDRESS = "workflow.update";
 
-    private final static String CREATE_AND_START_WORKFLOW_ADDRESS = "workflow.create_and_start";
+    public final static String CREATE_AND_START_TASK_ADDRESS = "task.create_and_start";
 
-    private final static String UPDATE_WORKFLOW_ADDRESS = "workflow.update";
+    public final static String UPDATE_TASK_ADDRESS = "task.update";
 
-    private final static String CREATE_AND_START_TASK_ADDRESS = "task.create_and_start";
+    private enum WorkflowState {COMPLETED, FAILED}
 
-    private final static String UPDATE_TASK_ADDRESS = "task.update";
+    private enum TaskState {COMPLETED, FAILED}
+
+    void execute(Message<?> message, Command command) {
+        try {
+            Future<?> future = command.execute();
+            future.setHandler((f) -> {
+                if (f.succeeded()) {
+                    JsonObject result = JsonObject.class.cast(f.result());
+                    if (result == null) {
+                        result = new JsonObject();
+                    }
+                    message.reply(result.putString("status", "ok"));
+                } else {
+                    container.logger().error(f.cause());
+                    JsonObject err = new JsonObject();
+                    err.putString("status", "error");
+                    err.putString("message", f.cause().getClass().getSimpleName() + ": " + f.cause().getMessage());
+                    message.reply(err);
+                }
+            });
+        } catch (Exception e) {
+            container.logger().error(e);
+            JsonObject err = new JsonObject();
+            err.putString("status", "error");
+            err.putString("message", e.getClass().getSimpleName() + ": " + e.getMessage());
+            message.reply(err);
+        }
+    }
 
     private JsonObject getCreateAndStartWorkflowResponse(String id) {
+        checkNotNull(id);
+
         JsonObject json = new JsonObject();
         json.putString("id", id);
         return json;
     }
 
     private void registerHandlers() {
-        vertx.eventBus().registerHandler(CREATE_AND_START_WORKFLOW_ADDRESS, (message) -> {
-            container.logger().info("Received CREATE_AND_START_WORKFLOW_ADDRESS message: " + message.body().toString());
-            message.reply(getCreateAndStartWorkflowResponse(UUID.randomUUID().toString()));
+        vertx.eventBus().registerHandler(CREATE_AND_START_WORKFLOW_ADDRESS, (Message<JsonObject> message) -> {
+            execute(message, () -> {
+                container.logger().info("Received CREATE_AND_START_WORKFLOW_ADDRESS message: " + checkNotNull(message).body().toString());
+                return createAndStartWorkflow(checkNotNull(message.body().getString("name")), message.body().getInteger("version"));
+            });
         });
 
-        vertx.eventBus().registerHandler(UPDATE_WORKFLOW_ADDRESS, (message) -> {
-            container.logger().info("Received UPDATE_WORKFLOW_ADDRESS message: " + message.body().toString());
-            message.reply();
+        vertx.eventBus().registerHandler(UPDATE_WORKFLOW_ADDRESS, (Message<JsonObject> message) -> {
+            execute(message, () -> {
+                container.logger().info("Received UPDATE_WORKFLOW_ADDRESS message: " + checkNotNull(message).body().toString());
+                return updateWorkflow(checkNotNull(message.body().getString("wid")), WorkflowState.valueOf(checkNotNull(message.body().getString("state")).toUpperCase()));
+            });
         });
 
-        vertx.eventBus().registerHandler(CREATE_AND_START_TASK_ADDRESS, (message) -> {
-            container.logger().info("Received CREATE_AND_START_TASK_ADDRESS message: " + message.body().toString());
-            message.reply();
+        vertx.eventBus().registerHandler(CREATE_AND_START_TASK_ADDRESS, (Message<JsonObject> message) -> {
+            execute(message, () -> {f
+                container.logger().info("Received CREATE_AND_START_TASK_ADDRESS message: " + checkNotNull(message).body().toString());
+                return createAndStartTask(checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("tid")));
+            });
         });
 
-        vertx.eventBus().registerHandler(UPDATE_TASK_ADDRESS, (message) -> {
-            container.logger().info("Received UPDATE_TASK_ADDRESS message: " + message.body().toString());
-            message.reply();
+        vertx.eventBus().registerHandler(UPDATE_TASK_ADDRESS, (Message<JsonObject> message) -> {
+            execute(message, () -> {
+                container.logger().info("Received UPDATE_TASK_ADDRESS message: " + checkNotNull(message).body().toString());
+                return updateTask(checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("tid")), TaskState.valueOf(checkNotNull(message.body().getString("state")).toUpperCase()));
+            });
         });
 
         container.logger().info("Registered handlers");
     }
 
-    private int getAPIHttpPort() {
-        try {
-            return getContainer().config().getInteger("PORT");
-        } catch (Exception e) {
-            String tmpPort = System.getenv().get("PORT");
-            try {
-                return Integer.parseInt(tmpPort);
-            } catch (Exception e1) {
-                //ignore;
-            }
-
-            return DEFAULT_API_HTTP_PORT;
-        }
-    }
-
-    private void checkContentTypeIsApplicationJson(HttpServerRequest req) {
-        String contentType = req.headers().get("content-type");
-        if (contentType == null || !contentType.equalsIgnoreCase("application/json")) {
-            throw new IllegalArgumentException();
-        }
-    }
-
-    private String checkBody(String body) {
-        if (body == null || body.trim().length() == 0) {
-            throw new IllegalArgumentException();
-        }
-        return body;
-    }
-
-    private void extractBodyAndSendToAddress(HttpServerRequest req, String address, ExtractBodyAndSendToAddress handler) {
-        final StringBuffer body = new StringBuffer("");
-        req.dataHandler((buffer) -> {
-            body.append(buffer);
-        });
-
-        req.endHandler((ignore) -> {
-            try {
-                checkContentTypeIsApplicationJson(req);
-                handler.handle(address, new JsonObject(checkBody(body.toString())));
-            } catch (IllegalArgumentException e) {
-                req.response().setStatusCode(400).end();
-            } catch (Exception e) {
-                req.response().setStatusCode(500).end();
-            }
-        });
-
-        container.logger().info(req.path() + " request processed");
-    }
-
-    private void registerAPI() {
-        RouteMatcher rm = new RouteMatcher();
-
-        rm.post("/workflows", (req) -> {
-            extractBodyAndSendToAddress(req, CREATE_AND_START_WORKFLOW_ADDRESS, (address, body) -> {
-                vertx.eventBus().sendWithTimeout(address, body, COMMUNICATON_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
-                    if (asyncResult.succeeded()) {
-                        req.response().setStatusCode(201).end(asyncResult.result().body().toString());
-                    } else {
-                        container.logger().error(asyncResult.cause());
-                        req.response().setStatusCode(500).end();
-                    }
-                });
-            });
-        });
-
-        rm.put("/workflows/:wid", (req) -> {
-            extractBodyAndSendToAddress(req, UPDATE_WORKFLOW_ADDRESS, (address, body) -> {
-                body.putString("wid", req.params().get("wid"));
-                vertx.eventBus().sendWithTimeout(address, body, COMMUNICATON_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
-                    if (asyncResult.succeeded()) {
-                        req.response().setStatusCode(200).end();
-                    } else {
-                        container.logger().error(asyncResult.cause());
-                        req.response().setStatusCode(500).end();
-                    }
-                });
-            });
-        });
-
-        rm.post("/workflows/:wid/tasks", (req) -> {
-            extractBodyAndSendToAddress(req, CREATE_AND_START_TASK_ADDRESS, (address, body) -> {
-                body.putString("wid", req.params().get("wid"));
-                vertx.eventBus().sendWithTimeout(address, body, COMMUNICATON_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
-                    if (asyncResult.succeeded()) {
-                        req.response().setStatusCode(201).end();
-                    } else {
-                        container.logger().error(asyncResult.cause());
-                        req.response().setStatusCode(500).end();
-                    }
-                });
-            });
-        });
-
-        rm.put("/workflows/:wid/tasks/:tid", (req) -> {
-            extractBodyAndSendToAddress(req, UPDATE_TASK_ADDRESS, (address, body) -> {
-                body.putString("wid", req.params().get("wid"));
-                body.putString("tid", req.params().get("tid"));
-                vertx.eventBus().sendWithTimeout(address, body, COMMUNICATON_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
-                    if (asyncResult.succeeded()) {
-                        req.response().setStatusCode(200).end();
-                    } else {
-                        container.logger().error(asyncResult.cause());
-                        req.response().setStatusCode(500).end();
-                    }
-                });
-            });
-        });
-
-        HttpServer server = vertx.createHttpServer();
-        int port = getAPIHttpPort();
-        server.requestHandler(rm).listen(port, "localhost");
-        container.logger().info("Registered API at " + port);
-    }
 
     public void start() {
         registerHandlers();
 
-        registerAPI();
-
         container.logger().info("OrchestrationTrackingServiceVerticle started");
+    }
+
+    private Future<JsonObject> createAndStartWorkflow(String name, int version) {
+        return new DefaultFutureResult<JsonObject>().setResult(getCreateAndStartWorkflowResponse(UUID.randomUUID().toString()));
+    }
+
+    private Future<Void> updateWorkflow(String wif, WorkflowState state) {
+        return new DefaultFutureResult<Void>().setResult(null);
+    }
+
+    private Future<Void> createAndStartTask(String wif, String tid) {
+        return new DefaultFutureResult<Void>().setResult(null);
+    }
+
+    private Future<Void> updateTask(String wif, String tid, TaskState state) {
+        return new DefaultFutureResult<Void>().setResult(null);
     }
 }
