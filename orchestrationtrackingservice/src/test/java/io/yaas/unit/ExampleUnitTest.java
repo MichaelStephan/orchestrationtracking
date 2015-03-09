@@ -1,6 +1,6 @@
 package io.yaas.unit;
 
-import io.yaas.OrchestrationTrackingServiceVerticle;
+import io.yaas.OrchestrationTrackingServiceAPIVerticle;
 import org.junit.Test;
 
 /*
@@ -24,7 +24,7 @@ public class ExampleUnitTest {
 
   @Test
   public void testVerticle() {
-    OrchestrationTrackingServiceVerticle vert = new OrchestrationTrackingServiceVerticle();
+    OrchestrationTrackingServiceAPIVerticle vert = new OrchestrationTrackingServiceAPIVerticle();
 
     // do something with verticle
   }

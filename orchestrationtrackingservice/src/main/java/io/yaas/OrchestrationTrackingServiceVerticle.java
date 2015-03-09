@@ -17,6 +17,7 @@ package io.yaas;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 
+import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Future;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.impl.DefaultFutureResult;
@@ -80,7 +81,37 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
     }
 
     private void registerCassandraStructures() {
-        
+        {
+            Future<Void> createKeyspace = new DefaultFutureResult<>();
+            vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "raw").putString("statement", "CREATE KEYSPACE yaas WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 }"), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+                Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
+                    container.logger().info("CREATE KEYSPACE yaas successful");
+                    createKeyspace.setResult(null);
+                }, (ignore) -> {
+                    container.logger().error("CREATE KEYSPACE yaas failed", asyncResult.cause());
+                    createKeyspace.setResult(null);
+                });
+            });
+
+            createKeyspace.setHandler((ignore) -> {
+                vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "raw").putString("statement", "CREATE TABLE yaas.workflows(wfid uuid, wfstate text, PRIMARY KEY(wfid))"), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+                    Common.checkResponse(vertx, container, asyncResult, (ignore1) -> {
+                        container.logger().info("CREATE TABLE yaas.workflows  successful");
+                    }, (ignore1) -> {
+                        container.logger().error("CREATE TABLE yaas.workflow failed", asyncResult.cause());
+                    });
+                });
+
+                vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "raw").putString("statement", "CREATE TABLE yaas.tasks(wfid uuid, timestamp timeuuid, tid uuid, tstate text, PRIMARY KEY(wfid, timestamp))"), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+                    Common.checkResponse(vertx, container, asyncResult, (ignore1) -> {
+                        container.logger().info("CREATE TABLE yaas.tasks successful");
+                    }, (ignore1) -> {
+                        container.logger().error("CREATE TABLE yaas.tasks failed", asyncResult.cause());
+                    });
+                });
+            });
+
+        }
     }
 
     private void registerHandlers() {
@@ -117,6 +148,8 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
 
 
     public void start() {
+        registerCassandraStructures();
+
         registerHandlers();
 
         container.logger().info("OrchestrationTrackingServiceVerticle started");

@@ -66,6 +66,12 @@
             <version>12.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.insanitydesign</groupId>
+            <artifactId>vertx-mod-cassandra-persistor</artifactId>
+            <version>0.4.1</version>
+        </dependency>
+
         <!--Vertx provided dependencies-->
         <dependency>
             <groupId>io.vertx</groupId>
