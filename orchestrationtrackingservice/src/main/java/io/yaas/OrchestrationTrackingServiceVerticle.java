@@ -95,7 +95,7 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
         });
 
         vertx.eventBus().registerHandler(CREATE_AND_START_TASK_ADDRESS, (Message<JsonObject> message) -> {
-            execute(message, () -> {f
+            execute(message, () -> {
                 container.logger().info("Received CREATE_AND_START_TASK_ADDRESS message: " + checkNotNull(message).body().toString());
                 return createAndStartTask(checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("tid")));
             });
