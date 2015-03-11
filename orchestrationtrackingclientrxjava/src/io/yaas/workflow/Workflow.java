@@ -17,6 +17,8 @@ public class Workflow {
 	
 	private Map<String, Action> _actionsRegistry = new HashMap<String, Action>();
 	
+	private int _nextActionId = 0;
+	
 	// @Inject
 	public Workflow(String name, String version, WorkflowExecutor executor) {
 		_name = name;
@@ -54,12 +56,15 @@ public class Workflow {
 	public Action getStartAction() {
 		if (_startAction == null) {
 			_startAction = new Action(this, null);
+			registerAction(_startAction);
 		}
 		return _startAction;
 	}
 	
-	public String generateId(Action a) {
-		return ""; // TODO must be stable
+	synchronized public String generateId(Action a) { // yes I know that synchronized methods are BAD :)
+		String id = String.valueOf(_nextActionId);
+		_nextActionId++;
+		return id;
 	}
 	
 	public Action getAction(String id) {

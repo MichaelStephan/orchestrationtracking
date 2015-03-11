@@ -14,16 +14,22 @@ public class Action {
 	private ErrorHandler _onFailure;
 	private ErrorHandler _onUnknown;
 	
+	private String _id;
+	
 	public Action(Workflow w, Body f) {
 		_w = w;
 		_body = f;
 	}
 	public Action addAction(Body f) {
 		Action successor = new Action(_w, f);
-		_w.registerAction(successor);
+		_id = _w.registerAction(successor);
 		_successors.add(successor);
 		
 		return successor;
+	}
+	
+	public String getId() {
+		return _id;
 	}
 	
 	public Action setErrorHandler(ErrorHandler onFailure, ErrorHandler onUnknown) {
