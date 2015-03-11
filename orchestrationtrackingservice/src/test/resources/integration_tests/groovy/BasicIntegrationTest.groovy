@@ -2,7 +2,7 @@
  * Simple integration test which shows tests deploying other verticles, using the Vert.x API etc
  */
 
-import io.yaas.integration.java.SomeVerticle
+import io.yaas.workflow.integration.java.SomeVerticle
 
 import static org.vertx.testtools.VertxAssert.*
 
