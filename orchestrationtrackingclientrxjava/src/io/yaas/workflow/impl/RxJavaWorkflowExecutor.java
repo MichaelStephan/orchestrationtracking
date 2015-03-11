@@ -1,7 +1,7 @@
 package io.yaas.workflow.impl;
 
-import io.yaas.workflow.Action;
 import io.yaas.workflow.Workflow;
+import io.yaas.workflow.Workflow.Action;
 import io.yaas.workflow.WorkflowExecutor;
 
 public class RxJavaWorkflowExecutor implements WorkflowExecutor {
