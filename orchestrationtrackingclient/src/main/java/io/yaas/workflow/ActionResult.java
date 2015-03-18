@@ -1,16 +1,15 @@
 package io.yaas.workflow;
 
-import java.util.Map;
+import io.yaas.workflow.Workflow.Action;
 
 /**
  * Created by i303874 on 3/11/15.
  */
 public class ActionResult {
     private Action action;
+    private Arguments result;
 
-    private Map<String, Object> result;
-
-    public ActionResult(Action action, Map<String, Object> result) {
+    public ActionResult(Action action, Arguments result) {
         this.action = action;
         this.result = result;
     }
@@ -19,7 +18,7 @@ public class ActionResult {
         return action;
     }
 
-    public Map<String, Object> getResult() {
+    public Arguments getResult() {
         return result;
     }
 }
