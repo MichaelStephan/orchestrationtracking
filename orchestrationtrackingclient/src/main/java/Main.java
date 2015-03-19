@@ -1,7 +1,7 @@
+import io.yaas.workflow.Action;
 import io.yaas.workflow.ActionResult;
 import io.yaas.workflow.Arguments;
 import io.yaas.workflow.Workflow;
-import io.yaas.workflow.Workflow.Action;
 import io.yaas.workflow.runtime.WorkflowEngine;
 
 import java.math.BigDecimal;
@@ -20,71 +20,51 @@ public class Main {
 
         // takes cartId, returns cart (productId: quantity)
     	
-		Action getShoppingCart = new Workflow.Action("Get Shopping Cart", "1.0", (action, arguments, result) -> {
+		Action getShoppingCart = new Action("Get Shopping Cart", "1.0", (action, arguments) -> {
             String cartId = Preconditions.checkNotNull(String.class.cast(arguments.get("cartid")));
             
-            new Thread(() -> {
-                result.set(new ActionResult(action, new Arguments(new ImmutableMap.Builder<String, Object>()
+            return new ActionResult(action, new Arguments(new ImmutableMap.Builder<String, Object>()
                         .putAll(arguments)
                         .put("cart", new ImmutableMap.Builder<String, Integer>()
                                 .put("product1", 5)
                                 .put("product2", 7)
                                 .build())
-                        .build())));
-            }).start();
-
-            return result;
+                        .build()));
 		});
     	
         // "calculate cart price"
 
-		Action calculateCartPrice = new Action("Calculate Cart Price", "1.0", (action, arguments, result) -> {
+		Action calculateCartPrice = new Action("Calculate Cart Price", "1.0", (action, arguments) -> {
 	        String cartId = Preconditions.checkNotNull(String.class.cast(arguments.get("cartid")));
 	
-	        new Thread(() -> {
-	            result.set(new ActionResult(action, new Arguments(new ImmutableMap.Builder<String, Object>()
+	        return new ActionResult(action, new Arguments(new ImmutableMap.Builder<String, Object>()
 	                    .putAll(arguments)
 	                    .put("cartprice", BigDecimal.valueOf(100.0))
-	                    .build())));
-	        }).start();
-	
-	        return result;
+	                    .build()));
 	    });
 		
         // "reserve stock"
 		
-        Action reserveStock = new Action("Reserve Stock", "1.0", (action, arguments, result) -> {
+        Action reserveStock = new Action("Reserve Stock", "1.0", (action, arguments) -> {
             Set<Map.Entry<String, String>> cartEntries = Preconditions.checkNotNull(Map.class.cast(arguments.get("cart"))).entrySet();
-
-            new Thread(() -> {
-                result.set(new ActionResult(action, arguments));
-            }).start();
-
-            return result;
+            return new ActionResult(action, arguments);
         });
 
         // "capture payment"
         
-        Action capturePayment = new Action("Capture Payment", "1.0", (action, arguments, result) -> {
+        Action capturePayment = new Action("Capture Payment", "1.0", (action, arguments) -> {
             BigDecimal cartPrice = Preconditions.checkNotNull(BigDecimal.class.cast(arguments.get("cartprice")));
 
-            new Thread(() -> {
-                result.set(new ActionResult(action, arguments));
-            }).start();
-
-            return result;
+            return new ActionResult(action, arguments);
         });
         
 
         // "create order"
         
-        Action createOrder = new Action("Create Order", "1.0", (action, arguments, result) -> {
+        Action createOrder = new Action("Create Order", "1.0", (action, arguments) -> {
             String cartId = Preconditions.checkNotNull(String.class.cast(arguments.get("cartid")));
 
-            new Thread(() -> {
-                result.set(new ActionResult(action, arguments));
-            }).start();
-            return result;
+            return new ActionResult(action, arguments);
         });
 
     	Workflow w = new Workflow("Shopping Cart Checkout", "1");

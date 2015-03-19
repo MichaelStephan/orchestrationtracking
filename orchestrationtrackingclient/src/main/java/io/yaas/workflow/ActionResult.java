@@ -1,6 +1,5 @@
 package io.yaas.workflow;
 
-import io.yaas.workflow.Workflow.Action;
 
 /**
  * Created by i303874 on 3/11/15.
