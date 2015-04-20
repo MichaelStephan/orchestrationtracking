@@ -67,7 +67,7 @@ public class Main {
             return new ActionResult(action, arguments);
         });
 
-    	Workflow w = new Workflow("Shopping Cart Checkout", "1");
+    	Workflow w = new Workflow("Shopping Cart Checkout", 1);
 		w.setErrorHandler((exception) -> { 
 			System.out.println("global failure");
 		}, (exception) -> { 

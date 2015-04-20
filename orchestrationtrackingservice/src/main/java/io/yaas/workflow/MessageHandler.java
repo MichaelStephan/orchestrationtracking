@@ -1,10 +1,10 @@
-package io.yaas;
+package io.yaas.workflow;
 
 import org.vertx.java.core.json.JsonObject;
 
 /**
  * Created by i303874 on 3/9/15.
  */
-public interface ExtractBodyAndSendToAddress {
+public interface MessageHandler {
     void handle(String address, JsonObject object);
 }

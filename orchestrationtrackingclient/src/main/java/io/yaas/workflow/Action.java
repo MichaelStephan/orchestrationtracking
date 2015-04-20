@@ -91,6 +91,10 @@ public class Action {
 		return this;
 	}
 	
+	public Workflow getWorkflow() {
+		return _w;
+	}
+	
 	public Set<Action> getSuccessors() {
 		return _successors;
 	}

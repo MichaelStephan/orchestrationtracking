@@ -7,6 +7,7 @@ import org.vertx.java.core.Vertx;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.impl.DefaultFutureResult;
+import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Container;
 
@@ -17,7 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Created by i303874 on 3/9/15.
  */
 public class Common {
-    public final static long COMMUNICATION_TIMEOUT = 10000;
+    public final static long COMMUNICATION_TIMEOUT = 100000;
 
     static void execute(Container container, Message message, Handler<Future> handler) {
         try {
@@ -63,7 +64,7 @@ public class Common {
 
     public static String checkBody(String body) {
         checkNotNull(body);
-        checkArgument(body.trim().length() > 0);
+//        checkArgument(body.trim().length() > 0);
         return body;
     }
 

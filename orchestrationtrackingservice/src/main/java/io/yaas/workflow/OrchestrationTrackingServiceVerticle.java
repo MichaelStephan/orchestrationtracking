@@ -17,7 +17,10 @@ package io.yaas.workflow;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 
-import com.datastax.driver.core.utils.UUIDs;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.UUID;
+
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Future;
 import org.vertx.java.core.eventbus.Message;
@@ -26,26 +29,28 @@ import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
-import java.util.UUID;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.datastax.driver.core.utils.UUIDs;
 
 /*
 This is a simple Java verticle which receives `ping` messages on the event bus and sends back `pong` replies
  */
 public class OrchestrationTrackingServiceVerticle extends Verticle {
 
+    public final static String LIST_WORKFLOWS_ADDRESS = "workflows.list";
+
+    public final static String GET_WORKFLOW_ADDRESS = "workflow.info";
+
     public final static String CREATE_AND_START_WORKFLOW_ADDRESS = "workflow.create_and_start";
 
     public final static String UPDATE_WORKFLOW_ADDRESS = "workflow.update";
 
-    public final static String CREATE_AND_START_TASK_ADDRESS = "task.create_and_start";
+    public final static String CREATE_AND_START_ACTION_ADDRESS = "task.create_and_start";
 
-    public final static String UPDATE_TASK_ADDRESS = "task.update";
+    public final static String UPDATE_ACTION_ADDRESS = "task.update";
 
-    private enum WorkflowState {COMPLETED, FAILED}
+    private enum WorkflowState {STARTED, SUCCEEDED, FAILED}
 
-    private enum TaskState {COMPLETED, FAILED}
+    private enum TaskState {STARTED, SUCCEEDED, FAILED}
 
     private void registerCassandraStructures() {
         {
@@ -82,6 +87,13 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
     }
 
     private void registerHandlers() {
+        vertx.eventBus().registerHandler(LIST_WORKFLOWS_ADDRESS, (ignore) -> {
+            Common.execute(container, ignore, (result) -> {
+                container.logger().info("Received LIST_WORKFLOWS_ADDRESS message");
+                listWorkflows(result);
+            });
+        });
+
         vertx.eventBus().registerHandler(CREATE_AND_START_WORKFLOW_ADDRESS, (Message<JsonObject> message) -> {
             Common.execute(container, message, (result) -> {
                 container.logger().info("Received CREATE_AND_START_WORKFLOW_ADDRESS message: " + checkNotNull(message).body().toString());
@@ -96,17 +108,17 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
             });
         });
 
-        vertx.eventBus().registerHandler(CREATE_AND_START_TASK_ADDRESS, (Message<JsonObject> message) -> {
+        vertx.eventBus().registerHandler(CREATE_AND_START_ACTION_ADDRESS, (Message<JsonObject> message) -> {
             Common.execute(container, message, (result) -> {
                 container.logger().info("Received CREATE_AND_START_TASK_ADDRESS message: " + checkNotNull(message).body().toString());
-                createAndStartTask(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("tid")));
+                createAndStartAction(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("tid")));
             });
         });
 
-        vertx.eventBus().registerHandler(UPDATE_TASK_ADDRESS, (Message<JsonObject> message) -> {
+        vertx.eventBus().registerHandler(UPDATE_ACTION_ADDRESS, (Message<JsonObject> message) -> {
             Common.execute(container, message, (result) -> {
                 container.logger().info("Received UPDATE_TASK_ADDRESS message: " + checkNotNull(message).body().toString());
-                updateTask(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("tid")), TaskState.valueOf(checkNotNull(message.body().getString("state")).toUpperCase()));
+                updateAction(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("tid")), TaskState.valueOf(checkNotNull(message.body().getString("state")).toUpperCase()));
             });
         });
 
@@ -120,6 +132,20 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
         registerHandlers();
 
         container.logger().info("OrchestrationTrackingServiceVerticle started");
+    }
+
+    private void listWorkflows(Future<JsonObject> result) {
+//        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "raw").putString("statement", "SELECT * FROM yaas.workflows"), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonArray>> asyncResult) -> {
+//            Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
+//                container.logger().info("SELECT FROM yaas.workflows successful");
+//                JsonObject o = new JsonObject();
+//                o.putArray("result", asyncResult.result().body().asArray());
+//                result.setResult(new JsonObject());
+//            }, (ignore) -> {
+//                container.logger().info("SELECT FROM yaas.workflows failed", asyncResult.cause());
+//                result.setFailure(asyncResult.cause());
+//            });
+//        });
     }
 
     private void createAndStartWorkflow(Future<JsonObject> result, String name, int version) {
@@ -147,7 +173,7 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
         });
     }
 
-    private void createAndStartTask(Future<Void> result, String wid, String tid) {
+    private void createAndStartAction(Future<Void> result, String wid, String tid) {
         vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "INSERT INTO yaas.tasks (wid, timestamp, tid) VALUES (?,?,?)").putArray("values", new JsonArray().addArray(new JsonArray().addString(wid).addString(UUIDs.timeBased().toString()).addString(tid))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
             Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
                 container.logger().info("INSERT INTO yaas.tasks successful");
@@ -159,7 +185,7 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
         });
     }
 
-    private void updateTask(Future<Void> result, String wid, String tid, TaskState state) {
+    private void updateAction(Future<Void> result, String wid, String tid, TaskState state) {
         vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "UPDATE yaas.tasks SET tstate=? WHERE wid=? AND tid=?").putArray("values", new JsonArray().addArray(new JsonArray().addString(state.name().toUpperCase()).addString(wid).addString(tid))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
             Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
                 container.logger().info("UPDATE yaas.tasks SET tstate successful");

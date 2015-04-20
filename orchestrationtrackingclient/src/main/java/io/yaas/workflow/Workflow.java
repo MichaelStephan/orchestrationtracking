@@ -12,7 +12,7 @@ import java.util.Set;
 public class Workflow {
 	
 	private String _name;
-	private String _version;
+	private int _version;
 	
 	private Action _startAction;
 	
@@ -21,7 +21,7 @@ public class Workflow {
 	
 	private Map<String, Action> _actionsRegistry = new HashMap<String, Action>();
 
-	public Workflow(String name, String version) {
+	public Workflow(String name, int version) {
 		_name = name;
 		_version = version;
 	}
@@ -30,7 +30,7 @@ public class Workflow {
 		return _name;
 	}
 
-	public String getVersion() {
+	public int getVersion() {
 		return _version;
 	}
 	

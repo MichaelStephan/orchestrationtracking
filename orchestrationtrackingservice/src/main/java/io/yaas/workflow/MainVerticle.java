@@ -47,7 +47,7 @@ public class MainVerticle extends Verticle {
                 JsonObject config = new JsonObject();
                 config.putNumber("PORT", getHttpAPIPort());
 
-                container.deployVerticle("io.yaas.OrchestrationTrackingServiceAPIVerticle", config, 1, (result1) -> {
+                container.deployVerticle("io.yaas.workflow.OrchestrationTrackingServiceAPIVerticle", config, 1, (result1) -> {
                     propagateFutureResult(result1, serviceAPILoaded);
                 });
             }
@@ -55,7 +55,7 @@ public class MainVerticle extends Verticle {
 
         cassandraLoaded.setHandler((result) -> {
             if (result.succeeded()) {
-                container.deployVerticle("io.yaas.OrchestrationTrackingServiceVerticle", 1, (result1) -> {
+                container.deployVerticle("io.yaas.workflow.OrchestrationTrackingServiceVerticle", 1, (result1) -> {
                     propagateFutureResult(result1, serviceLoaded);
                 });
             }

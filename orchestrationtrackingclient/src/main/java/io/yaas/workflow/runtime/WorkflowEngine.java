@@ -4,8 +4,11 @@ import io.yaas.workflow.Action;
 import io.yaas.workflow.ActionResult;
 import io.yaas.workflow.Arguments;
 import io.yaas.workflow.Workflow;
+import io.yaas.workflow.runtime.tracker.WorkflowTracker;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -27,22 +30,30 @@ public class WorkflowEngine {
 		
 	});
 	
+	private List<WorkflowListener> _eventHandlers;
+	
     public WorkflowEngine() {
+    	_eventHandlers = new ArrayList<WorkflowListener>();
+    	registerEventHandler(new WorkflowTracker());
     }
 
+
+    public void registerEventHandler(WorkflowListener eh) {
+    	_eventHandlers.add(eh);
+    }
+    
     public void runWorkflow(Workflow w, Arguments arguments) {
     	runAction(w.getStartAction(), arguments);
     }
     
-    public void runAction(Action action, Arguments arguments) {
-    	
+    public void runAction(Action action, Arguments arguments) {  	
     	// TODO factory
     	ActionExecutor executor = getExecutor(action);
         SettableFuture<ActionResult> future = SettableFuture.create();
         Futures.addCallback(future, new FutureCallback<ActionResult>() {
             @Override
             public void onSuccess(ActionResult result) {
-            	after(action);
+            	onActionSuccess(action);
             	action.getSuccessors().forEach((successor) -> {
                     runAction(successor, result.getResult());
                 });
@@ -50,14 +61,14 @@ public class WorkflowEngine {
 
             @Override
             public void onFailure(Throwable error) {
-            	error(action, error);
+            	onActionFailure(action, error);
             }
         });
-        before(action);
+        onActionStart(action);
         try {
         	executor.execute(arguments, future);
         } catch (Exception e) {
-        	failure(action, e);
+        	onActionError(action, e);
         }
     }
     
@@ -69,19 +80,26 @@ public class WorkflowEngine {
     	}
     	return executor;
     }
-    private void before(Action action) {
-    	// TODO call orchestration tracking
+
+    private void onActionStart(Action action) {
+    	for (WorkflowListener eventHandler : _eventHandlers) {
+			eventHandler.onActionStart(action);
+		}
         System.out.println(action.getName() + " - started");
     }
     
-    private void after(Action action) {
-    	// TODO call orchestration tracking
+    private void onActionSuccess(Action action) {
+    	for (WorkflowListener eventHandler : _eventHandlers) {
+			eventHandler.onActionSuccess(action);
+		}
         System.out.println(action.getName() + " - succeeded");
     }
     
     // application error
-    private void error(Action action, Throwable error) {
-    	// TODO call orchestration tracking
+    private void onActionError(Action action, Throwable error) {
+    	for (WorkflowListener eventHandler : _eventHandlers) {
+			eventHandler.onActionError(action, error);
+		}
     	if (action.getOnFailure() != null)
     		action.getOnFailure().accept(error);
     	// TODO when to call onUnknown?o
@@ -89,8 +107,10 @@ public class WorkflowEngine {
     }
     
     // technical error
-    private void failure(Action action, Throwable error) {
-    	// TODO call orchestration tracking
+    private void onActionFailure(Action action, Throwable error) {
+    	for (WorkflowListener eventHandler : _eventHandlers) {
+			eventHandler.onActionFailure(action, error);
+		}
         System.out.println(action.getName() + " - failed: " + error.getClass() + ": " + error.getMessage());
         error.printStackTrace();
     }

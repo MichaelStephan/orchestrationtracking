@@ -17,19 +17,20 @@ package io.yaas.workflow;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.http.HttpServer;
 import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.http.RouteMatcher;
+import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /*
-This is a simple Java verticle which receives `ping` messages on the event bus and sends back `pong` replies
+  API verticle that accepts the REST calls (similar to JAX-RS resource)
  */
 public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
 
@@ -37,7 +38,7 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
         return getContainer().config().getInteger("PORT");
     }
 
-    private void extractBodyAndSendToAddress(HttpServerRequest req, String address, ExtractBodyAndSendToAddress handler) {
+    private void handleMessage(HttpServerRequest req, String address, MessageHandler handler) {
         checkNotNull(req);
         checkNotNull(address);
         checkArgument(address.length() > 0);
@@ -51,7 +52,7 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
         req.endHandler((ignore) -> {
             try {
                 Common.checkContentTypeIsApplicationJson(req);
-                handler.handle(address, new JsonObject(Common.checkBody(body.toString())));
+                handler.handle(address, "GET".equals(req.method()) ? new JsonObject() : new JsonObject(Common.checkBody(body.toString())));
             } catch (IllegalArgumentException e) {
                 req.response().setStatusCode(400).end();
             } catch (Exception e) {
@@ -65,8 +66,20 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
     private void registerAPI() {
         RouteMatcher rm = new RouteMatcher();
 
+        rm.get("/workflows", (req) -> {
+            handleMessage(req, OrchestrationTrackingServiceVerticle.LIST_WORKFLOWS_ADDRESS, (address, body) -> {
+                vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+                    Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
+                        req.response().setStatusCode(200).end(asyncResult.result().body().toString());
+                    }, (ignore) -> {
+                        req.response().setStatusCode(500).end();
+                    });
+                });
+            });
+        });
+
         rm.post("/workflows", (req) -> {
-            extractBodyAndSendToAddress(req, OrchestrationTrackingServiceVerticle.CREATE_AND_START_WORKFLOW_ADDRESS, (address, body) -> {
+            handleMessage(req, OrchestrationTrackingServiceVerticle.CREATE_AND_START_WORKFLOW_ADDRESS, (address, body) -> {
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
                         req.response().setStatusCode(201).end(asyncResult.result().body().toString());
@@ -78,7 +91,7 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
         });
 
         rm.put("/workflows/:wid", (req) -> {
-            extractBodyAndSendToAddress(req, OrchestrationTrackingServiceVerticle.UPDATE_WORKFLOW_ADDRESS, (address, body) -> {
+            handleMessage(req, OrchestrationTrackingServiceVerticle.UPDATE_WORKFLOW_ADDRESS, (address, body) -> {
                 body.putString("wid", checkNotNull(req.params().get("wid")));
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
@@ -90,8 +103,8 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
             });
         });
 
-        rm.post("/workflows/:wid/tasks", (req) -> {
-            extractBodyAndSendToAddress(req, OrchestrationTrackingServiceVerticle.CREATE_AND_START_TASK_ADDRESS, (address, body) -> {
+        rm.post("/workflows/:wid/actions", (req) -> {
+            handleMessage(req, OrchestrationTrackingServiceVerticle.CREATE_AND_START_ACTION_ADDRESS, (address, body) -> {
                 body.putString("wid", checkNotNull(req.params().get("wid")));
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
@@ -103,10 +116,10 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
             });
         });
 
-        rm.put("/workflows/:wid/tasks/:tid", (req) -> {
-            extractBodyAndSendToAddress(req, OrchestrationTrackingServiceVerticle.UPDATE_TASK_ADDRESS, (address, body) -> {
+        rm.put("/workflows/:wid/actions/:aid", (req) -> {
+            handleMessage(req, OrchestrationTrackingServiceVerticle.UPDATE_ACTION_ADDRESS, (address, body) -> {
                 body.putString("wid", checkNotNull(req.params().get("wid")));
-                body.putString("tid", checkNotNull(req.params().get("tid")));
+                body.putString("tid", checkNotNull(req.params().get("aid")));
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
                         req.response().setStatusCode(200).end();
