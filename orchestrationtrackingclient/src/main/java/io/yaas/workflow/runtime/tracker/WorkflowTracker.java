@@ -2,13 +2,13 @@ package io.yaas.workflow.runtime.tracker;
 
 import io.yaas.workflow.Action;
 import io.yaas.workflow.Workflow;
-import io.yaas.workflow.runtime.WorkflowListener;
+import io.yaas.workflow.runtime.WorkflowCallbackHandler;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 import io.yaas.workflow.runtime.tracker.model.ActionBean;
 import io.yaas.workflow.runtime.tracker.model.State;
 import io.yaas.workflow.runtime.tracker.model.WorkflowBean;
 
-public class WorkflowTracker implements WorkflowListener {
+public class WorkflowTracker implements WorkflowCallbackHandler {
 
 	private WorkflowTrackingClient _trackingClient;
 	

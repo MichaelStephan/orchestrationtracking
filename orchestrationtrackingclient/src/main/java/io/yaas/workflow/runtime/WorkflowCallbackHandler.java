@@ -3,12 +3,12 @@ package io.yaas.workflow.runtime;
 import io.yaas.workflow.Action;
 import io.yaas.workflow.Workflow;
 
-public interface WorkflowListener {
+public interface WorkflowCallbackHandler {
 	void onWorkflowStart(Workflow workflow);
 	void onWorkflowSuccess(Workflow workflow);
 
-	void onWorkflowFailure(Workflow workflow, Throwable t);
-	void onWorkflowError(Workflow workflow, Throwable t);
+	void onWorkflowFailure(Workflow workflow, Throwable error);
+	void onWorkflowError(Workflow workflow, Throwable error);
 	void onWorkflowUnknown(Workflow workflow);
 
 	void onActionStart(Action action);

@@ -30,23 +30,31 @@ public class WorkflowEngine {
 		
 	});
 	
-	private List<WorkflowListener> _eventHandlers;
+	private List<WorkflowCallbackHandler> _eventHandlers;
+
+	private Throwable _lastActionError;
+	private Throwable _lastActionFailure;
 	
     public WorkflowEngine() {
-    	_eventHandlers = new ArrayList<WorkflowListener>();
+    	_eventHandlers = new ArrayList<WorkflowCallbackHandler>();
     	registerEventHandler(new WorkflowTracker());
+    	registerEventHandler(new UserCallbacksHandler());
     }
 
 
-    public void registerEventHandler(WorkflowListener eh) {
+    public void registerEventHandler(WorkflowCallbackHandler eh) {
     	_eventHandlers.add(eh);
     }
     
     public void runWorkflow(Workflow w, Arguments arguments) {
+    	onWorkflowStart(w);
     	runAction(w.getStartAction(), arguments);
+    	if (_lastActionError != null) onWorkflowError(w, _lastActionError);
+    	if (_lastActionFailure != null) onWorkflowFailure(w, _lastActionFailure);
+    	if (_lastActionError == null && _lastActionFailure == null) onWorkflowSuccess(w);
     }
     
-    public void runAction(Action action, Arguments arguments) {  	
+	public void runAction(Action action, Arguments arguments) {  	
     	// TODO factory
     	ActionExecutor executor = getExecutor(action);
         SettableFuture<ActionResult> future = SettableFuture.create();
@@ -81,15 +89,43 @@ public class WorkflowEngine {
     	return executor;
     }
 
+    private void onWorkflowStart(Workflow w) {
+    	for (WorkflowCallbackHandler eventHandler : _eventHandlers) {
+			eventHandler.onWorkflowStart(w);
+		}
+        System.out.println(w.getName() + " - started");
+	}
+
+	private void onWorkflowSuccess(Workflow w) {
+    	for (WorkflowCallbackHandler eventHandler : _eventHandlers) {
+			eventHandler.onWorkflowSuccess(w);
+		}
+        System.out.println(w.getName() + " - succeeded");
+	}
+
+	private void onWorkflowFailure(Workflow w, Throwable error) {
+    	for (WorkflowCallbackHandler eventHandler : _eventHandlers) {
+			eventHandler.onWorkflowFailure(w, error);
+		}
+        System.out.println(w.getName() + " - failed");
+	}
+
+	private void onWorkflowError(Workflow w, Throwable error) {
+    	for (WorkflowCallbackHandler eventHandler : _eventHandlers) {
+			eventHandler.onWorkflowError(w, error);
+		}
+        System.out.println(w.getName() + " - error");
+	}
+
     private void onActionStart(Action action) {
-    	for (WorkflowListener eventHandler : _eventHandlers) {
+    	for (WorkflowCallbackHandler eventHandler : _eventHandlers) {
 			eventHandler.onActionStart(action);
 		}
         System.out.println(action.getName() + " - started");
     }
     
     private void onActionSuccess(Action action) {
-    	for (WorkflowListener eventHandler : _eventHandlers) {
+    	for (WorkflowCallbackHandler eventHandler : _eventHandlers) {
 			eventHandler.onActionSuccess(action);
 		}
         System.out.println(action.getName() + " - succeeded");
@@ -97,18 +133,19 @@ public class WorkflowEngine {
     
     // application error
     private void onActionError(Action action, Throwable error) {
-    	for (WorkflowListener eventHandler : _eventHandlers) {
+    	_lastActionError = error;
+    	for (WorkflowCallbackHandler eventHandler : _eventHandlers) {
 			eventHandler.onActionError(action, error);
 		}
-    	if (action.getOnFailure() != null)
-    		action.getOnFailure().accept(error);
-    	// TODO when to call onUnknown?o
+    	// TODO when to call onUnknown?
         System.out.println(action.getName() + " - failed: " + error.getClass() + ": " + error.getMessage());
+        error.printStackTrace();
     }
     
     // technical error
     private void onActionFailure(Action action, Throwable error) {
-    	for (WorkflowListener eventHandler : _eventHandlers) {
+    	_lastActionFailure = error;
+    	for (WorkflowCallbackHandler eventHandler : _eventHandlers) {
 			eventHandler.onActionFailure(action, error);
 		}
         System.out.println(action.getName() + " - failed: " + error.getClass() + ": " + error.getMessage());
