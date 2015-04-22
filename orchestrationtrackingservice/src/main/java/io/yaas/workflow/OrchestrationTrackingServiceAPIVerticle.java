@@ -69,7 +69,7 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
             handleMessage(req, OrchestrationTrackingServiceVerticle.LIST_WORKFLOWS_ADDRESS, (address, body) -> {
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
-                        req.response().setStatusCode(200).end(asyncResult.result().body().toString());
+                        req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end(asyncResult.result().body().toString());
                     }, (ignore) -> {
                         req.response().setStatusCode(500).end();
                     });
@@ -81,7 +81,7 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
             handleMessage(req, OrchestrationTrackingServiceVerticle.CREATE_AND_START_WORKFLOW_ADDRESS, (address, body) -> {
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
-                        req.response().setStatusCode(201).end(asyncResult.result().body().toString());
+                        req.response().setStatusCode(201).putHeader("Content-Type", "application/json").end(asyncResult.result().body().toString());
                     }, (ignore) -> {
                         req.response().setStatusCode(500).end();
                     });
@@ -94,7 +94,7 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
                 body.putString("wid", checkNotNull(req.params().get("wid")));
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
-                        req.response().setStatusCode(200).end();
+                        req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end();
                     }, (ignore) -> {
                         req.response().setStatusCode(500).end();
                     });
@@ -107,7 +107,7 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
                 body.putString("wid", checkNotNull(req.params().get("wid")));
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
-                        req.response().setStatusCode(201).end();
+                        req.response().setStatusCode(201).putHeader("Content-Type", "application/json").end();
                     }, (ignore) -> {
                         req.response().setStatusCode(500).end();
                     });
@@ -118,10 +118,10 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
         rm.put("/workflows/:wid/actions/:aid", (req) -> {
             handleMessage(req, OrchestrationTrackingServiceVerticle.UPDATE_ACTION_ADDRESS, (address, body) -> {
                 body.putString("wid", checkNotNull(req.params().get("wid")));
-                body.putString("tid", checkNotNull(req.params().get("aid")));
+                body.putString("aid", checkNotNull(req.params().get("aid")));
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
-                        req.response().setStatusCode(200).end();
+                        req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end();
                     }, (ignore) -> {
                         req.response().setStatusCode(500).end();
                     });

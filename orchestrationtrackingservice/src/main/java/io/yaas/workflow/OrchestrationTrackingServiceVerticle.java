@@ -73,7 +73,7 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
                 });
             });
 
-            vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "raw").putString("statement", "CREATE TABLE yaas.actions(wid uuid, timestamp timeuuid, aid text, astate text, PRIMARY KEY(wid, timestamp))"), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+            vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "raw").putString("statement", "CREATE TABLE yaas.actions(wid uuid, timestamp timeuuid, aid text, astate text, PRIMARY KEY(wid, aid, timestamp))"), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                 Common.checkResponse(vertx, container, asyncResult, (ignore1) -> {
                     container.logger().info("CREATE TABLE yaas.actions successful");
                 }, (ignore1) -> {
@@ -102,21 +102,21 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
         vertx.eventBus().registerHandler(UPDATE_WORKFLOW_ADDRESS, (Message<JsonObject> message) -> {
             Common.execute(container, message, (result) -> {
                 container.logger().info("Received UPDATE_WORKFLOW_ADDRESS message: " + checkNotNull(message).body().toString());
-                updateWorkflow(result, checkNotNull(message.body().getString("wid")), WorkflowState.valueOf(checkNotNull(message.body().getString("state")).toUpperCase()));
+                updateWorkflow(result, checkNotNull(message.body().getString("wid")), WorkflowState.valueOf(checkNotNull(message.body().getString("wstate")).toUpperCase()));
             });
         });
 
         vertx.eventBus().registerHandler(CREATE_AND_START_ACTION_ADDRESS, (Message<JsonObject> message) -> {
             Common.execute(container, message, (result) -> {
                 container.logger().info("Received CREATE_AND_START_ACTION_ADDRESS message: " + checkNotNull(message).body().toString());
-                createAndStartAction(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("aid")));
+                createAndStartAction(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("aid")), checkNotNull(message.body().getString("name")), checkNotNull(message.body().getString("version")));
             });
         });
 
         vertx.eventBus().registerHandler(UPDATE_ACTION_ADDRESS, (Message<JsonObject> message) -> {
             Common.execute(container, message, (result) -> {
                 container.logger().info("Received UPDATE_ACTION_ADDRESS message: " + checkNotNull(message).body().toString());
-                updateAction(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("aid")), ActionState.valueOf(checkNotNull(message.body().getString("state")).toUpperCase()));
+                updateAction(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("aid")), ActionState.valueOf(checkNotNull(message.body().getString("astate")).toUpperCase()));
             });
         });
 
@@ -146,10 +146,10 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
 
     private void createAndStartWorkflow(Future<JsonObject> result, String name, int version) {
         String wid = UUID.randomUUID().toString();
-        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "INSERT INTO yaas.workflows (wid, name, version) VALUES (?,?,?)").putArray("values", new JsonArray().addArray(new JsonArray().addString(wid).addString(name).addNumber(version))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "INSERT INTO yaas.workflows (wid, name, version, wstate) VALUES (?,?,?,?)").putArray("values", new JsonArray().addArray(new JsonArray().addString(wid).addString(name).addNumber(version).addString("started"))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
             Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
                 container.logger().info("INSERT INTO yaas.workflows successful");
-                result.setResult(new JsonObject().putString("id", wid));
+                result.setResult(new JsonObject().putString("wid", wid).putString("name", name).putNumber("version", version).putString("state", "started"));
             }, (ignore) -> {
                 container.logger().info("INSERT INTO yaas.workflows failed", asyncResult.cause());
                 result.setFailure(asyncResult.cause());
@@ -158,22 +158,24 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
     }
 
     private void updateWorkflow(Future<Void> result, String wid, WorkflowState state) {
-        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "UPDATE yaas.workflows SET wstate=? WHERE wid=?").putArray("values", new JsonArray().addArray(new JsonArray().addString(state.name().toUpperCase()).addString(wid))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "UPDATE yaas.workflows SET wstate=? WHERE wid=?").putArray("values", new JsonArray().addArray(new JsonArray().addString(state.name().toLowerCase()).addString(wid))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
             Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
                 container.logger().info("UPDATE yaas.workflows SET wstate successful");
                 result.setResult(null);
             }, (ignore) -> {
-                container.logger().info("UPDATE yaas.workflows SET wstate failed", asyncResult.cause());
-                result.setFailure(asyncResult.cause());
+            	Throwable cause = asyncResult.cause();
+                container.logger().info("UPDATE yaas.workflows SET wstate failed", cause);
+                cause.printStackTrace();
+                result.setFailure(cause);
             });
         });
     }
 
-    private void createAndStartAction(Future<Void> result, String wid, String aid) {
-        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "INSERT INTO yaas.actions (wid, timestamp, aid) VALUES (?,?,?)").putArray("values", new JsonArray().addArray(new JsonArray().addString(wid).addString(UUIDs.timeBased().toString()).addString(aid))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+    private void createAndStartAction(Future<JsonObject> result, String wid, String aid, String name, String version) {
+        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "INSERT INTO yaas.actions (wid, timestamp, aid, astate) VALUES (?,?,?,?)").putArray("values", new JsonArray().addArray(new JsonArray().addString(wid).addString(UUIDs.timeBased().toString()).addString(aid).addString("started"))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
             Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
                 container.logger().info("INSERT INTO yaas.actions successful");
-                result.setResult(null);
+                result.setResult(new JsonObject().putString("wid", wid).putString("aid", aid).putString("version", version).putString("astate", "started"));
             }, (ignore) -> {
                 container.logger().info("INSERT INTO yaas.actions failed", asyncResult.cause());
                 result.setFailure(asyncResult.cause());
@@ -182,12 +184,12 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
     }
 
     private void updateAction(Future<Void> result, String wid, String aid, ActionState state) {
-        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "UPDATE yaas.actions SET astate=? WHERE wid=? AND aid=?").putArray("values", new JsonArray().addArray(new JsonArray().addString(state.name().toUpperCase()).addString(wid).addString(aid))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "UPDATE yaas.actions SET astate=? WHERE wid=? AND aid=?").putArray("values", new JsonArray().addArray(new JsonArray().addString(state.name().toLowerCase()).addString(wid).addString(aid))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
             Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
-                container.logger().info("UPDATE yaas.actions SET tstate successful");
+                container.logger().info("UPDATE yaas.actions SET astate successful");
                 result.setResult(null);
             }, (ignore) -> {
-                container.logger().info("UPDATE yaas.actions SET tstate failed", asyncResult.cause());
+                container.logger().info("UPDATE yaas.actions SET astate failed", asyncResult.cause());
                 result.setFailure(asyncResult.cause());
             });
         });
