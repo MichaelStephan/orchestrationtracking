@@ -1,0 +1,13 @@
+Oleg: I did the following changes comparing to the "old" state
+
+1. Connected the library to the orchestration tracking backend (Jersey/Jackson)
+2. Refactored out the callbacks handling in the library (WorkflowCallbackHandler interface)
+- Current implementations are: WorkflowTracker (calls to the tracking backend) and UserCallbackHandler (dispatches to user lambdas)
+3. Terminology fix: "action" instead of "task" also in the orchestration tracking service 
+
+TODOs:
+
+1. Action update does not work:
+- needs timestamp as a part of the primary key for the UPDATE statement
+- for that the CREATE call must give it back nad the WorkflowTracker has to keep it
+

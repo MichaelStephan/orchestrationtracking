@@ -55,7 +55,8 @@ public class Workflow {
 
 	public Action getStartAction() {
 		if (_startAction == null) {
-			_startAction = new Action("Start action", "0.0", (action, arguments) -> {
+			_startAction = new Action("Start action", "0.0", this);
+			_startAction.setFunction((action, arguments) -> {
 				return new ActionResult(action, new Arguments(arguments));
 			});
 		}

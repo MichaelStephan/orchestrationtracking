@@ -40,7 +40,7 @@ public class Action {
 			return getName() + "." + getVersion();
 	}
 	
-	private Action(String name, String version, Workflow w) {
+	public Action(String name, String version, Workflow w) {
 		_name = name;
 		_version = version;
 		_w = w;
@@ -95,6 +95,10 @@ public class Action {
 		return _w;
 	}
 	
+	public void setWorkflow(Workflow w) {
+		_w = w;
+	}
+
 	public Set<Action> getSuccessors() {
 		return _successors;
 	}
