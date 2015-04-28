@@ -7,8 +7,8 @@ package io.yaas.workflow;
  */
 class MergeAction extends Action {
 	
-    public MergeAction() {
-        super("merge", "1.0");
+    public MergeAction(Workflow w) {
+        super("merge", "1.0", w);
     }
     
 }
