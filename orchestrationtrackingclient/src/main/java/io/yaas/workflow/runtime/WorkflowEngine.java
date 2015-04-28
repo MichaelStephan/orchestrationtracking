@@ -3,14 +3,14 @@ package io.yaas.workflow.runtime;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
-import io.yaas.workflow.Action;
-import io.yaas.workflow.ActionResult;
-import io.yaas.workflow.Arguments;
-import io.yaas.workflow.Workflow;
+import io.yaas.workflow.*;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 import io.yaas.workflow.runtime.tracker.model.ActionBean;
 import io.yaas.workflow.runtime.tracker.model.State;
 import io.yaas.workflow.runtime.tracker.model.WorkflowBean;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -20,6 +20,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class WorkflowEngine {
 
     private WorkflowTrackingClient _trackingClient;
+
+    private Map<String, ActionExecutor> executors = new HashMap<>();
 
     public WorkflowEngine(String trackingEndpoint) {
         checkNotNull(trackingEndpoint);
@@ -61,7 +63,14 @@ public class WorkflowEngine {
     }
 
     private ActionExecutor getExecutor(ActionInstance actionInstance) {
-        return ActionExecutor.create(actionInstance);
+        String aid = actionInstance.getAction().getId();
+        ActionExecutor executor = executors.get(aid);
+        if (executor == null) {
+            executor = ActionExecutor.create(actionInstance);
+            executors.put(aid, executor);
+        }
+
+        return executor;
     }
 
     private String onWorkflowStart(Workflow w) {
@@ -89,15 +98,23 @@ public class WorkflowEngine {
         WorkflowBean workflowBean = new WorkflowBean();
         workflowBean.wid = wid;
 
-        ActionBean actionBean = _trackingClient.createAction(new ActionBean(workflowBean, action));
-        System.out.println(action.getName() + " - started");
-        return new ActionInstance(wid, actionBean.aid, actionBean.timestamp, action);
+        if (action instanceof MergeAction) {
+            // TODO !!!
+            ActionInstance actionInstance = new ActionInstance(wid, action.getId(), null, action);
+            return actionInstance;
+        } else {
+            ActionBean actionBean = _trackingClient.createAction(new ActionBean(workflowBean, action));
+            System.out.println(action.getName() + " - started");
+            return new ActionInstance(wid, actionBean.aid, actionBean.timestamp, action);
+        }
     }
 
     private void onActionSuccess(ActionInstance actionInstance) {
-        ActionBean actionBean = new ActionBean(actionInstance);
-        actionBean.astate = State.SUCCEEDED;
-        _trackingClient.updateAction(actionBean);
+        if (!(actionInstance.getAction() instanceof MergeAction)) {
+            ActionBean actionBean = new ActionBean(actionInstance);
+            actionBean.astate = State.SUCCEEDED;
+            _trackingClient.updateAction(actionBean);
+        }
         System.out.println(actionInstance.getAction().getName() + " - succeeded");
     }
 

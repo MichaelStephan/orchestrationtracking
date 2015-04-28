@@ -71,8 +71,20 @@ public class Workflow {
         return _actionsRegistry.get(id);
     }
 
+//    private void print(Action action) {
+//        System.out.println("------");
+//        System.out.println(action.hashCode());
+//        System.out.println(action);
+//        for (Action s : action.getSuccessors()) {
+//            print(s);
+//        }
+//    }
+
     public void execute(WorkflowEngine engine, Arguments arguments) {
         prepareExecute();
+
+//        print(getStartAction());
+
         engine.runWorkflow(this, arguments);
     }
 
