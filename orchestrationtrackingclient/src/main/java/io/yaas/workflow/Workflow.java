@@ -96,7 +96,7 @@ public class Workflow {
 	private void mergeAction(Action a) {
         for (Action successor: a.getSuccessors()) {
             if (a.getPredecessors().size() > 1 && !(a instanceof MergeAction)) {
-            	a.insertBefore(new MergeAction());
+            	a.insertBefore(new MergeAction(this));
             }
        		mergeAction(successor);
         }
