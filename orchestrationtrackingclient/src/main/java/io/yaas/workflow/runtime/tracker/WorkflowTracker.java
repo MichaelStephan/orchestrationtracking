@@ -26,9 +26,8 @@ public class WorkflowTracker implements WorkflowCallbackHandler {
 	
 	@Override
 	public void onWorkflowStart(Workflow workflow) {
-		WorkflowBean bean = new WorkflowBean(workflow);
+		WorkflowBean bean = _trackingClient.createWorkflow(new WorkflowBean(workflow));
 		_registry.put(workflow, bean);
-    	_trackingClient.createWorkflow(bean);
 	}
 
 	@Override
