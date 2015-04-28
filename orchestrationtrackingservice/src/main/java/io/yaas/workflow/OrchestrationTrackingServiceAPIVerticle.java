@@ -17,9 +17,6 @@ package io.yaas.workflow;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.http.HttpServer;
@@ -27,6 +24,9 @@ import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.http.RouteMatcher;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /*
   API verticle that accepts the REST calls (similar to JAX-RS resource)
@@ -107,7 +107,7 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
                 body.putString("wid", checkNotNull(req.params().get("wid")));
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
-                        req.response().setStatusCode(201).putHeader("Content-Type", "application/json").end();
+                        req.response().setStatusCode(201).putHeader("Content-Type", "application/json").end(asyncResult.result().body().toString());
                     }, (ignore) -> {
                         req.response().setStatusCode(500).end();
                     });
@@ -115,10 +115,11 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
             });
         });
 
-        rm.put("/workflows/:wid/actions/:aid", (req) -> {
+        rm.put("/workflows/:wid/actions/:aid/:timestamp", (req) -> {
             handleMessage(req, OrchestrationTrackingServiceVerticle.UPDATE_ACTION_ADDRESS, (address, body) -> {
                 body.putString("wid", checkNotNull(req.params().get("wid")));
                 body.putString("aid", checkNotNull(req.params().get("aid")));
+                body.putString("timestamp", checkNotNull(req.params().get("timestamp")));
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
                         req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end();

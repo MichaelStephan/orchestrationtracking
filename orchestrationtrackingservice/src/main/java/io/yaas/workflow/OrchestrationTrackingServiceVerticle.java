@@ -17,10 +17,7 @@ package io.yaas.workflow;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.UUID;
-
+import com.datastax.driver.core.utils.UUIDs;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Future;
 import org.vertx.java.core.eventbus.Message;
@@ -29,7 +26,9 @@ import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
-import com.datastax.driver.core.utils.UUIDs;
+import java.util.UUID;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /*
 This is a simple Java verticle which receives `ping` messages on the event bus and sends back `pong` replies
@@ -116,7 +115,7 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
         vertx.eventBus().registerHandler(UPDATE_ACTION_ADDRESS, (Message<JsonObject> message) -> {
             Common.execute(container, message, (result) -> {
                 container.logger().info("Received UPDATE_ACTION_ADDRESS message: " + checkNotNull(message).body().toString());
-                updateAction(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("aid")), ActionState.valueOf(checkNotNull(message.body().getString("astate")).toUpperCase()));
+                updateAction(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("aid")), checkNotNull(message.body().getString("timestamp")), ActionState.valueOf(checkNotNull(message.body().getString("astate")).toUpperCase()));
             });
         });
 
@@ -172,10 +171,12 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
     }
 
     private void createAndStartAction(Future<JsonObject> result, String wid, String aid, String name, String version) {
-        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "INSERT INTO yaas.actions (wid, timestamp, aid, astate) VALUES (?,?,?,?)").putArray("values", new JsonArray().addArray(new JsonArray().addString(wid).addString(UUIDs.timeBased().toString()).addString(aid).addString("started"))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+        // TODO UUIDs.timeBased() may lead to collisions and therefore needs to carry random bits along timestamp !!!
+        String uniqueTimestamp = UUIDs.timeBased().toString();
+        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "INSERT INTO yaas.actions (wid, timestamp, aid, astate) VALUES (?,?,?,?)").putArray("values", new JsonArray().addArray(new JsonArray().addString(wid).addString(uniqueTimestamp).addString(aid).addString("started"))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
             Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
                 container.logger().info("INSERT INTO yaas.actions successful");
-                result.setResult(new JsonObject().putString("wid", wid).putString("aid", aid).putString("version", version).putString("astate", "started"));
+                result.setResult(new JsonObject().putString("wid", wid).putString("aid", aid).putString("version", version).putString("timestamp", uniqueTimestamp).putString("astate", "started"));
             }, (ignore) -> {
                 container.logger().info("INSERT INTO yaas.actions failed", asyncResult.cause());
                 result.setFailure(asyncResult.cause());
@@ -183,8 +184,8 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
         });
     }
 
-    private void updateAction(Future<Void> result, String wid, String aid, ActionState state) {
-        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "UPDATE yaas.actions SET astate=? WHERE wid=? AND aid=?").putArray("values", new JsonArray().addArray(new JsonArray().addString(state.name().toLowerCase()).addString(wid).addString(aid))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+    private void updateAction(Future<Void> result, String wid, String aid, String timestamp, ActionState state) {
+        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "UPDATE yaas.actions SET astate=? WHERE wid=? AND aid=? AND timestamp=?").putArray("values", new JsonArray().addArray(new JsonArray().addString(state.name().toLowerCase()).addString(wid).addString(aid).addString(timestamp))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
             Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
                 container.logger().info("UPDATE yaas.actions SET astate successful");
                 result.setResult(null);

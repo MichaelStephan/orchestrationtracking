@@ -1,25 +1,23 @@
 package io.yaas.workflow.runtime;
 
-import io.yaas.workflow.Action;
+import com.google.common.util.concurrent.SettableFuture;
 import io.yaas.workflow.ActionResult;
 import io.yaas.workflow.Arguments;
 
-import com.google.common.util.concurrent.SettableFuture;
-
 abstract class ActionExecutor {
-	
-	protected Action _action;
-	
-	static ActionExecutor create(Action action) {
-		if (action.getPredecessors().size() > 1)
-			return new MergeActionExecutor(action);
-		else
-			return new SimpleActionExecutor(action);
-	}
-	
-	protected ActionExecutor(Action action) {
-		_action = action;
-	}
-	
-	abstract void execute(Arguments arguments, SettableFuture<ActionResult> result);
+
+    protected ActionInstance _actionInstance;
+
+    static ActionExecutor create(ActionInstance actionInstance) {
+        if (actionInstance.getAction().getPredecessors().size() > 1)
+            return new MergeActionExecutor(actionInstance);
+        else
+            return new SimpleActionExecutor(actionInstance);
+    }
+
+    protected ActionExecutor(ActionInstance actionInstance) {
+        _actionInstance = actionInstance;
+    }
+
+    abstract void execute(Arguments arguments, SettableFuture<ActionResult> result);
 }

@@ -1,20 +1,22 @@
 package io.yaas.workflow;
 
 
+import io.yaas.workflow.runtime.ActionInstance;
+
 /**
  * Created by i303874 on 3/11/15.
  */
 public class ActionResult {
-    private Action action;
+    private ActionInstance actionInstance;
     private Arguments result;
 
-    public ActionResult(Action action, Arguments result) {
-        this.action = action;
+    public ActionResult(ActionInstance actionInstance, Arguments result) {
+        this.actionInstance = actionInstance;
         this.result = result;
     }
 
-    public Action getAction() {
-        return action;
+    public ActionInstance getActionInstance() {
+        return actionInstance;
     }
 
     public Arguments getResult() {
