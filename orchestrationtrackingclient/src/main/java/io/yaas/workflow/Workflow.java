@@ -78,7 +78,7 @@ public class Workflow {
 	
 	public void execute(WorkflowEngine engine, Arguments arguments) {
 		prepareExecute();
-		engine.runAction(getStartAction(), arguments);
+		engine.runWorkflow(this, arguments);
 	}
 
 	private void prepareExecute() {
