@@ -3,6 +3,7 @@ package io.yaas.workflow.runtime;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
+import io.yaas.workflow.ActionErrorHandler;
 import io.yaas.workflow.ActionResult;
 import io.yaas.workflow.Arguments;
 import io.yaas.workflow.Workflow;
@@ -24,7 +25,7 @@ public class WorkflowEngine {
     }
 
     public void runWorkflow(Workflow workflow, ActionInstance startAction, Arguments arguments) {
-        runAction(new WorkflowInstance(workflow), startAction, arguments);
+        runAction(new WorkflowInstance(workflow, _trackingClient), startAction, arguments);
     }
 
     private void runAction(WorkflowInstance workflow, ActionInstance action, Arguments arguments) {
@@ -40,16 +41,18 @@ public class WorkflowEngine {
             }
 
             @Override
-            public void onFailure(Throwable error) {
-                action.error(workflow, _trackingClient, error);
+            public void onFailure(Throwable cause) {
+                action.error(workflow, _trackingClient, cause);
+
+                ActionErrorHandler errorHandler = action.getAction().getErrorHandler();
+                if (errorHandler == null) {
+                    errorHandler = new FailFastActionErrorHandler();
+                }
+                errorHandler.execute(workflow, action, arguments, cause);
             }
         });
 
-        try {
-            action.start(workflow, _trackingClient);
-            action.execute(workflow, _trackingClient, arguments, future);
-        } catch (Exception e) {
-            action.error(workflow, _trackingClient, e);
-        }
+        action.start(workflow, _trackingClient);
+        action.execute(arguments, future);
     }
 }

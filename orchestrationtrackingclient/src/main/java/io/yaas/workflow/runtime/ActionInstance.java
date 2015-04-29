@@ -1,7 +1,7 @@
 package io.yaas.workflow.runtime;
 
 import com.google.common.util.concurrent.SettableFuture;
-
+import io.yaas.workflow.Action;
 import io.yaas.workflow.ActionResult;
 import io.yaas.workflow.Arguments;
 import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
@@ -14,6 +14,7 @@ import java.util.Collection;
  */
 
 public interface ActionInstance {
+    Action getAction();
 
     void addSuccessor(ActionInstance action);
 
@@ -33,5 +34,5 @@ public interface ActionInstance {
 
     void error(WorkflowInstance workflowInstance, WorkflowTrackingClient client, Throwable cause);
 
-    void execute(WorkflowInstance workflowInstance, WorkflowTrackingClient client, Arguments arguments, SettableFuture<ActionResult> result);
+    void execute(Arguments arguments, SettableFuture<ActionResult> result);
 }

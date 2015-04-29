@@ -4,6 +4,7 @@ import io.yaas.workflow.Action;
 import io.yaas.workflow.ActionResult;
 import io.yaas.workflow.Arguments;
 import io.yaas.workflow.Workflow;
+import io.yaas.workflow.runtime.CustomUndoActionErrorHandler;
 import io.yaas.workflow.runtime.WorkflowEngine;
 
 import java.math.BigDecimal;
@@ -19,10 +20,10 @@ public class Main {
 
         // takes cartId, returns cart (productId: quantity)
 
-        Action getShoppingCart = new Action("Get Shopping Cart", "1.0", (actionInstance, arguments) -> {
+        Action getShoppingCart = new Action("Get Shopping Cart", "1.0", (arguments) -> {
             String cartId = Preconditions.checkNotNull(String.class.cast(arguments.get("cartid")));
 
-            return new ActionResult(actionInstance, new Arguments(new ImmutableMap.Builder<String, Object>()
+            return new ActionResult(new Arguments(new ImmutableMap.Builder<String, Object>()
                     .putAll(arguments)
                     .put("cart", new ImmutableMap.Builder<String, Integer>()
                             .put("product1", 5)
@@ -30,51 +31,65 @@ public class Main {
                             .build())
                     .build()));
         });
+        getShoppingCart.setErrorHandler(new CustomUndoActionErrorHandler((cause, arguments) -> {
+            System.out.println("getShoppingCart an issue occured !!!" + arguments);
+            return null;
+        }));
 
         // "calculate cart price"
 
-        Action calculateCartPrice = new Action("Calculate Cart Price", "1.0", (actionInstance, arguments) -> {
+        Action calculateCartPrice = new Action("Calculate Cart Price", "1.0", (arguments) -> {
             String cartId = Preconditions.checkNotNull(String.class.cast(arguments.get("cartid")));
-            throw new RuntimeException("bum");
-//            return new ActionResult(actionInstance, new Arguments(new ImmutableMap.Builder<String, Object>()
-//                    .putAll(arguments)
-//                    .put("cartprice", BigDecimal.valueOf(100.0))
-//                    .build()));
+
+            return new ActionResult(new Arguments(new ImmutableMap.Builder<String, Object>()
+                    .putAll(arguments)
+                    .put("cartprice", BigDecimal.valueOf(100.0))
+                    .build()));
         });
+        calculateCartPrice.setErrorHandler(new CustomUndoActionErrorHandler((cause, arguments) -> {
+            System.out.println("calculateCartPrice an issue occured !!!" + arguments);
+            return null;
+        }));
 
         // "reserve stock"
 
-        Action reserveStock = new Action("Reserve Stock", "1.0", (actionInstance, arguments) -> {
+        Action reserveStock = new Action("Reserve Stock", "1.0", (arguments) -> {
             Set<Map.Entry<String, String>> cartEntries = Preconditions.checkNotNull(Map.class.cast(arguments.get("cart"))).entrySet();
-            return new ActionResult(actionInstance, arguments);
+            return new ActionResult(arguments);
         });
+        reserveStock.setErrorHandler(new CustomUndoActionErrorHandler((cause, arguments) -> {
+            System.out.println("reserveStock an issue occured !!!" + arguments);
+            return null;
+        }));
 
         // "capture payment"
 
-        Action capturePayment = new Action("Capture Payment", "1.0", (actionInstance, arguments) -> {
+        Action capturePayment = new Action("Capture Payment", "1.0", (arguments) -> {
             BigDecimal cartPrice = Preconditions.checkNotNull(BigDecimal.class.cast(arguments.get("cartprice")));
 
-            return new ActionResult(actionInstance, arguments);
+            return new ActionResult(arguments);
         });
-
+        capturePayment.setErrorHandler(new CustomUndoActionErrorHandler((cause, arguments) -> {
+            System.out.println("capturePayment an issue occured !!!" + arguments);
+            return null;
+        }));
 
         // "create order"
 
-        Action createOrder = new Action("Create Order", "1.0", (actionInstance, arguments) -> {
+        Action createOrder = new Action("Create Order", "1.0", (arguments) -> {
             String cartId = Preconditions.checkNotNull(String.class.cast(arguments.get("cartid")));
 
-            return new ActionResult(actionInstance, arguments);
+            throw new RuntimeException("bum");
+
+//            return new ActionResult(arguments);
         });
+        createOrder.setErrorHandler(new CustomUndoActionErrorHandler((cause, arguments) -> {
+            System.out.println("createOrder an issue occured !!!" + arguments);
+            return null;
+        }));
 
         Workflow w = new Workflow("Shopping Cart Checkout", 1);
-        w.setErrorHandler((exception) -> {
-            System.out.println("global failure");
-        }, (exception) -> {
-            System.out.println("global unknown");
-        })
-                .getStartAction()
-                .addAction(getShoppingCart);
-
+        w.getStartAction().addAction(getShoppingCart);
         getShoppingCart.addAction(calculateCartPrice);
         getShoppingCart.addAction(reserveStock);
         reserveStock.addAction(capturePayment);

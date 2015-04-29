@@ -1,6 +1,9 @@
 package io.yaas.workflow.runtime.action.instance;
 
 import io.yaas.workflow.Workflow;
+import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
+import io.yaas.workflow.runtime.tracker.model.State;
+import io.yaas.workflow.runtime.tracker.model.WorkflowBean;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -12,8 +15,11 @@ public class WorkflowInstance {
 
     private String id;
 
-    public WorkflowInstance(Workflow workflow) {
+    private WorkflowTrackingClient client;
+
+    public WorkflowInstance(Workflow workflow, WorkflowTrackingClient client) {
         this.workflow = checkNotNull(workflow);
+        this.client = checkNotNull(client);
     }
 
     public Workflow getWorkflow() {
@@ -27,15 +33,32 @@ public class WorkflowInstance {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getName() {
         return workflow.getName();
     }
 
     public int getVersion() {
         return workflow.getVersion();
+    }
+
+    public void start() {
+        WorkflowBean bean = client.createWorkflow(new WorkflowBean(this.getName(), this.getVersion()));
+        this.id = bean.wid;
+    }
+
+    public void succeed() {
+        WorkflowBean bean = new WorkflowBean(getName(), getVersion());
+        bean.wstate = State.SUCCEEDED;
+        bean.wid = getId();
+        client.updateWorkflow(bean);
+        this.id = null;
+    }
+
+    public void error() {
+        WorkflowBean bean = new WorkflowBean(getName(), getVersion());
+        bean.wstate = State.FAILED;
+        bean.wid = getId();
+        client.updateWorkflow(bean);
+        this.id = null;
     }
 }

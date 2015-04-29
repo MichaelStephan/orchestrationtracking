@@ -1,7 +1,6 @@
 package io.yaas.workflow.runtime.tracker.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.yaas.workflow.Action;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ActionBean {
@@ -30,9 +29,5 @@ public class ActionBean {
         this.aid = aid;
         this.astate = State.STARTED;
         this.timestamp = timestamp;
-    }
-
-    public ActionBean(WorkflowBean w, Action a) {
-        this(w.wid, a.getName(), a.getVersion(), a.getId());
     }
 }

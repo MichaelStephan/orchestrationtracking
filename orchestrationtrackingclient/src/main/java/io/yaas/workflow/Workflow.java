@@ -16,8 +16,8 @@ public class Workflow {
 
     private Action _startAction;
 
-    private ErrorHandler _onFailureHandler;
-    private ErrorHandler _onUnknownHandler;
+    private ActionErrorHandler _onFailureHandler;
+    private ActionErrorHandler _onUnknownHandler;
 
     public Workflow(String name, int version) {
         _name = name;
@@ -36,18 +36,18 @@ public class Workflow {
         return ""; // TODO
     }
 
-    public Workflow setErrorHandler(ErrorHandler onFailure, ErrorHandler onUnknown) {
+    public Workflow setErrorHandler(ActionErrorHandler onFailure, ActionErrorHandler onUnknown) {
         _onFailureHandler = onFailure;
         _onUnknownHandler = onUnknown;
 
         return this;
     }
 
-    public ErrorHandler getOnFailure() {
+    public ActionErrorHandler getOnFailure() {
         return _onFailureHandler;
     }
 
-    public ErrorHandler getOnUnknown() {
+    public ActionErrorHandler getOnUnknown() {
         return _onUnknownHandler;
     }
 
