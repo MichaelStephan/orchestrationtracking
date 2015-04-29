@@ -8,7 +8,6 @@ import io.yaas.workflow.Arguments;
 import io.yaas.workflow.Workflow;
 import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
-import io.yaas.workflow.runtime.tracker.model.WorkflowBean;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -24,19 +23,11 @@ public class WorkflowEngine {
         this._trackingClient = new WorkflowTrackingClient(trackingEndpoint);
     }
 
-
-    private String onWorkflowStart(Workflow w) {
-        System.out.println(w.getName() + " - started");
-        WorkflowBean bean = _trackingClient.createWorkflow(new WorkflowBean(w));
-        return bean.wid;
-    }
-
     public void runWorkflow(Workflow workflow, ActionInstance startAction, Arguments arguments) {
         runAction(new WorkflowInstance(workflow), startAction, arguments);
     }
 
     private void runAction(WorkflowInstance workflow, ActionInstance action, Arguments arguments) {
-
         SettableFuture<ActionResult> future = SettableFuture.create();
         Futures.addCallback(future, new FutureCallback<ActionResult>() {
             @Override
@@ -55,7 +46,6 @@ public class WorkflowEngine {
         });
 
         try {
-            System.out.println(action);
             action.start(workflow, _trackingClient);
             action.execute(workflow, _trackingClient, arguments, future);
         } catch (Exception e) {
