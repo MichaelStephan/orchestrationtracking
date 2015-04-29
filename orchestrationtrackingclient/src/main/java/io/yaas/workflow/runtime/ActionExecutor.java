@@ -10,11 +10,24 @@ abstract class ActionExecutor {
 
     static ActionExecutor create(ActionInstance actionInstance) {
         if (actionInstance.getAction().getPredecessors().size() > 1)
-            return new MergeActionExecutor(actionInstance);
+            return new MergeActionExecutor((MergeActionInstance)actionInstance);
         else
             return new SimpleActionExecutor(actionInstance);
     }
 
+//    void execute(MergeActionInstance actionInstance, Arguments arguments, SettableFuture<ActionResult> result) {
+//
+//    }
+//
+//    void execute(StartActionInstance actionInstance, Arguments arguments, SettableFuture<ActionResult> result) {
+//
+//    }
+//    void execute(EndActionInstance actionInstance, Arguments arguments, SettableFuture<ActionResult> result) {
+//
+//    }
+//    void execute(SimpleActionInstance actionInstance, Arguments arguments, SettableFuture<ActionResult> result) {
+//
+//    }
     protected ActionExecutor(ActionInstance actionInstance) {
         _actionInstance = actionInstance;
     }

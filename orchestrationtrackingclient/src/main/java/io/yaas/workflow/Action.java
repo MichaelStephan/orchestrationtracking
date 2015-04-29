@@ -8,20 +8,11 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-public class Action {
+public class Action extends Node {
 	
 	private String _name;
 	private String _version;
-	
-	private Set<Action> _successors = new TreeSet<Action>(new Comparator<Action>() {
-		@Override
-		public int compare(Action o1, Action o2) {
-			if (o1.getNameVersion() == null) return -1;
-			else return o1.getNameVersion().compareTo(o2.getNameVersion());
-		}
-	});
-	private Set<Action> _predecessors = new HashSet<Action>();
-	
+
 	private Workflow _w;
 	
 	protected Body _body;
@@ -99,10 +90,6 @@ public class Action {
 		_w = w;
 	}
 
-	public Set<Action> getSuccessors() {
-		return _successors;
-	}
-	
 	public Body getFunction() {
 		return _body;
 	}
@@ -114,49 +101,7 @@ public class Action {
 	public ErrorHandler getOnUnknown() {
 		return _onUnknown;
 	}
-	
-	public Set<Action> getPredecessors() {
-		return _predecessors;
-	}
-	
-	private void addSuccessor(Action successor) {
-		_successors.add(successor);
-		successor.addPredecessor(this);
-	}
-	
-	private void removeSuccessor(Action successor) {
-		_successors.remove(successor);
-		successor.removePredecessor(this);
-	}
-	
-	private void addPredecessor(Action predecessor) {
-		_predecessors.add(predecessor);
-	}
-	
-	private void removePredecessor(Action predecessor) {
-		_predecessors.remove(predecessor);
-	}
-	
-	void insertAfter(Action successor) {
-		for (Action a: getSuccessors()) {
-			successor.addSuccessor(a);
-			removeSuccessor(a);
-		}
-		addSuccessor(successor);
-	}
-	
-	void insertBefore(Action successor) {
-		List<Action> predecessors = new ArrayList<Action>();
-		for (Action a: getPredecessors()) { // otherwise concurrent modification
-			predecessors.add(a);
-		}
-		for (Action a: predecessors) {
-			a.addSuccessor(successor);
-			a.removeSuccessor(this);
-		}
-		successor.addSuccessor(this);
-	}
-	
+
 	public String getName() {
 		return _name;
 	}

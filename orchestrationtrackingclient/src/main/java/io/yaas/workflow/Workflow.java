@@ -1,5 +1,7 @@
 package io.yaas.workflow;
 
+import io.yaas.workflow.runtime.ActionInstance;
+import io.yaas.workflow.runtime.MergeActionInstance;
 import io.yaas.workflow.runtime.WorkflowEngine;
 
 import java.util.HashMap;
@@ -53,6 +55,10 @@ public class Workflow {
         return _onUnknownHandler;
     }
 
+    public Action addAction(Action a) {
+        return getStartAction().addAction(a);
+    }
+
     public Action getStartAction() {
         if (_startAction == null) {
             _startAction = new Action("Start action", "0.0", this);
@@ -88,43 +94,52 @@ public class Workflow {
         engine.runWorkflow(this, arguments);
     }
 
-    private void prepareExecute() {
-        insertMergeActions();
-        List<Action> linearized = getLinearizedActions();
-        for (int i = 0; i < linearized.size(); i++) {
-            registerAction(linearized.get(i), i);
-        }
+    private ActionInstance prepareExecute() {
+        return buildExecutionGraph(getStartAction());
+//        insertMergeActions();
+//        List<Action> linearized = getLinearizedActions();
+//        for (int i = 0; i < linearized.size(); i++) {
+//            registerAction(linearized.get(i), i);
+//        }
     }
 
     private void insertMergeActions() {
         mergeAction(getStartAction());
     }
 
-    private void mergeAction(Action a) {
-        for (Action successor : a.getSuccessors()) {
+    private void mergeAction(Node a) {
+        for (Node successor : a.getSuccessors()) {
             if (a.getPredecessors().size() > 1 && !(a instanceof MergeAction)) {
-                a.insertBefore(new MergeAction(this));
+                a.insertBefore(new MergeActionInstance(this));
             }
             mergeAction(successor);
         }
     }
 
-    private List<Action> getLinearizedActions() {
-        List<Action> sorted = new LinkedList<Action>();
-        Set<Action> visited = new HashSet<>();
-        visitAction(visited, sorted, _startAction);
-        return sorted;
-    }
+    private ActionInstance buildExecutionGraph(Action start) {
+        return new NodeVisitor() {
+            List<Node> instances = new LinkedList<Node>();
+            Set<Node> visited = new HashSet<>();
 
-    private void visitAction(Set<Action> visited, List<Action> sorted, Action a) {
-        if (!visited.contains(a)) {
-            sorted.add(a);
-            visited.add(a);
-
-            for (Action successor : a.getSuccessors()) {
-                visitAction(visited, sorted, successor);
+            ActionInstance build(Action start) {
+                start.accept(this);
+                return (ActionInstance)instances.get(0);
             }
-        }
+
+            @Override
+            public void visit(Node node) {
+                Action action = (Action) node;
+                if (!visited.contains(action)) { // cycles processing
+                    ActionInstance actionInstance = new ActionInstance(action);
+                    instances.add(actionInstance);
+                    // TODO predecessors
+                    visited.add(action);
+                    action.getSuccessors().stream().forEach((successor) -> {
+                        successor.accept(this);
+                    });
+                }
+            }
+        }.build(start);
     }
 
     private String registerAction(Action a, int i) {
