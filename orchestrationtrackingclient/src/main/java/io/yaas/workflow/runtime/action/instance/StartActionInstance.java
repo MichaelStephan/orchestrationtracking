@@ -16,7 +16,7 @@ public class StartActionInstance extends SimpleActionInstance {
     }
 
     @Override
-    public void execute(Arguments arguments, SettableFuture<ActionResult> result) {
+    public void execute(WorkflowInstance workflowInstance, WorkflowTrackingClient client, Arguments arguments, SettableFuture<ActionResult> result) {
         result.set(new ActionResult(this, arguments));
     }
 

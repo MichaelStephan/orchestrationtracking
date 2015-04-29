@@ -40,7 +40,7 @@ public class MergeActionInstance extends SimpleActionInstance {
     }
 
     @Override
-    public void execute(Arguments arguments, SettableFuture<ActionResult> result) {
+    public void execute(WorkflowInstance workflowInstance, WorkflowTrackingClient client, Arguments arguments, SettableFuture<ActionResult> result) {
         new Thread(() -> {
             _results.add(new ActionResult(this, arguments));
             if (_count.decrementAndGet() == 0) {

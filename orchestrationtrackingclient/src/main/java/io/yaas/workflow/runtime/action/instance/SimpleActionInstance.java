@@ -68,9 +68,13 @@ public class SimpleActionInstance implements ActionInstance {
     }
 
     @Override
-    public void execute(Arguments arguments, SettableFuture<ActionResult> result) {
+    public void execute(WorkflowInstance workflowInstance, WorkflowTrackingClient client, Arguments arguments, SettableFuture<ActionResult> result) {
         new Thread(() -> {
-            result.set(action.getFunction().apply(this, arguments));
+            try {
+                result.set(action.getFunction().apply(this, arguments));
+            } catch (Exception e) {
+                error(workflowInstance, client, e);
+            }
         }).start();
     }
 

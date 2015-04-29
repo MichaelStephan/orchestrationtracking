@@ -50,15 +50,14 @@ public class WorkflowEngine {
 
             @Override
             public void onFailure(Throwable error) {
-                System.out.println("TODO fix onActionFailure");
-                // TODO onActionFailure(action, error);
+                action.error(workflow, _trackingClient, error);
             }
         });
 
         try {
             System.out.println(action);
             action.start(workflow, _trackingClient);
-            action.execute(arguments, future);
+            action.execute(workflow, _trackingClient, arguments, future);
         } catch (Exception e) {
             action.error(workflow, _trackingClient, e);
         }

@@ -35,11 +35,11 @@ public class Main {
 
         Action calculateCartPrice = new Action("Calculate Cart Price", "1.0", (actionInstance, arguments) -> {
             String cartId = Preconditions.checkNotNull(String.class.cast(arguments.get("cartid")));
-
-            return new ActionResult(actionInstance, new Arguments(new ImmutableMap.Builder<String, Object>()
-                    .putAll(arguments)
-                    .put("cartprice", BigDecimal.valueOf(100.0))
-                    .build()));
+            throw new RuntimeException("bum");
+//            return new ActionResult(actionInstance, new Arguments(new ImmutableMap.Builder<String, Object>()
+//                    .putAll(arguments)
+//                    .put("cartprice", BigDecimal.valueOf(100.0))
+//                    .build()));
         });
 
         // "reserve stock"
