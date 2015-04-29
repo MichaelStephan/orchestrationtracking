@@ -1,6 +1,10 @@
 package io.yaas.workflow.runtime;
 
-import io.yaas.workflow.*;
+import com.google.common.util.concurrent.SettableFuture;
+import io.yaas.workflow.ActionResult;
+import io.yaas.workflow.Arguments;
+import io.yaas.workflow.MergeAction;
+import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 
 import java.util.HashMap;
 import java.util.List;
@@ -9,31 +13,45 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by D032705 on 28.04.2015.
+ * Created by i303874 on 4/29/15.
  */
-public class MergeActionInstance extends ActionInstance {
-    // TODO consider CountDownLatch instead
+public class MergeActionInstance extends SimpleActionInstance {
     private AtomicInteger _count;
     private List<ActionResult> _results = new CopyOnWriteArrayList<>();
 
-    public MergeActionInstance(Workflow w) {
-        super(new Action("Merge Action", "1.0", w));
-        _count = new AtomicInteger(action.getPredecessors().size());
+    public MergeActionInstance(String id, MergeAction action, int count) {
+        super(id, action);
+        this._count = new AtomicInteger(count);
     }
 
-    public int decrementAndGet() {
-        return _count.incrementAndGet();
+    @Override
+    public void start(String workflowId, WorkflowTrackingClient client) {
+
     }
 
-    public void mergeResult(ActionResult result) {
-        _results.add(result);
+    @Override
+    public void succeed(String workflowId, WorkflowTrackingClient client) {
+
     }
 
-    public ActionResult getResult() {
-        Map<String, Object> consolidatedArguments = new HashMap<>();
-        _results.stream().forEach((argument) -> {
-            consolidatedArguments.putAll(argument.getResult());
-        });
-        return new ActionResult(this, new Arguments(consolidatedArguments));
+    @Override
+    public void error(String workflowId, WorkflowTrackingClient client, Throwable cause) {
+
+    }
+
+    @Override
+    public void execute(Arguments arguments, SettableFuture<ActionResult> result) {
+        new Thread(() -> {
+            _results.add(new ActionResult(this, arguments));
+            if (_count.decrementAndGet() == 0) {
+                // TODO make nicer !!!
+                Map<String, Object> consolidatedArguments = new HashMap<>();
+                _results.stream().forEach((argument) -> {
+                    consolidatedArguments.putAll(argument.getResult());
+                });
+
+                result.set(new ActionResult(this, new Arguments(consolidatedArguments)));
+            }
+        }).start();
     }
 }

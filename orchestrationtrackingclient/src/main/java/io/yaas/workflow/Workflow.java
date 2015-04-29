@@ -2,14 +2,10 @@ package io.yaas.workflow;
 
 import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.MergeActionInstance;
+import io.yaas.workflow.runtime.SimpleActionInstance;
 import io.yaas.workflow.runtime.WorkflowEngine;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Workflow {
 
@@ -20,8 +16,6 @@ public class Workflow {
 
     private ErrorHandler _onFailureHandler;
     private ErrorHandler _onUnknownHandler;
-
-    private Map<String, Action> _actionsRegistry = new HashMap<>();
 
     public Workflow(String name, int version) {
         _name = name;
@@ -55,10 +49,6 @@ public class Workflow {
         return _onUnknownHandler;
     }
 
-    public Action addAction(Action a) {
-        return getStartAction().addAction(a);
-    }
-
     public Action getStartAction() {
         if (_startAction == null) {
             _startAction = new Action("Start action", "0.0", this);
@@ -69,84 +59,67 @@ public class Workflow {
         return _startAction;
     }
 
-    private String generateId(Action a, int i) {
-        return (a.getName() + "." + a.getVersion() + "." + i).replaceAll("\\s", "_");
-    }
-
-    public Action getAction(String id) {
-        return _actionsRegistry.get(id);
-    }
-
-//    private void print(Action action) {
+//    private void print(ActionInstance action) {
 //        System.out.println("------");
 //        System.out.println(action.hashCode());
 //        System.out.println(action);
-//        for (Action s : action.getSuccessors()) {
+//        for (ActionInstance s : action.getSuccessors()) {
 //            print(s);
 //        }
 //    }
 
+    private ActionInstance transform(Action action, int nextId) {
+        if (action instanceof MergeAction) {
+            return new MergeActionInstance(Integer.toString(nextId), MergeAction.class.cast(action), action.getPredecessors().size());
+        } else {
+            return new SimpleActionInstance(Integer.toString(nextId), action);
+        }
+    }
+
     public void execute(WorkflowEngine engine, Arguments arguments) {
-        prepareExecute();
+        ActionInstance start = prepareExecute();
 
-//        print(getStartAction());
+//        print(start);
 
-        engine.runWorkflow(this, arguments);
+        engine.runWorkflow(this, start, arguments);
     }
 
     private ActionInstance prepareExecute() {
-        return buildExecutionGraph(getStartAction());
-//        insertMergeActions();
-//        List<Action> linearized = getLinearizedActions();
-//        for (int i = 0; i < linearized.size(); i++) {
-//            registerAction(linearized.get(i), i);
-//        }
+        insertMergeActions();
+
+        return getActionInstances();
     }
 
     private void insertMergeActions() {
         mergeAction(getStartAction());
     }
 
-    private void mergeAction(Node a) {
-        for (Node successor : a.getSuccessors()) {
+    private void mergeAction(Action a) {
+        for (Action successor : a.getSuccessors()) {
             if (a.getPredecessors().size() > 1 && !(a instanceof MergeAction)) {
-                a.insertBefore(new MergeActionInstance(this));
+                a.insertBefore(new MergeAction(this));
             }
             mergeAction(successor);
         }
     }
 
-    private ActionInstance buildExecutionGraph(Action start) {
-        return new NodeVisitor() {
-            List<Node> instances = new LinkedList<Node>();
-            Set<Node> visited = new HashSet<>();
-
-            ActionInstance build(Action start) {
-                start.accept(this);
-                return (ActionInstance)instances.get(0);
-            }
-
-            @Override
-            public void visit(Node node) {
-                Action action = (Action) node;
-                if (!visited.contains(action)) { // cycles processing
-                    ActionInstance actionInstance = new ActionInstance(action);
-                    instances.add(actionInstance);
-                    // TODO predecessors
-                    visited.add(action);
-                    action.getSuccessors().stream().forEach((successor) -> {
-                        successor.accept(this);
-                    });
-                }
-            }
-        }.build(start);
+    private ActionInstance getActionInstances() {
+        Map<Action, ActionInstance> action2InstanceMapping = new HashMap<>();
+        return visitAction(_startAction, action2InstanceMapping, 0);
     }
 
-    private String registerAction(Action a, int i) {
-        String id = generateId(a, i);
-        _actionsRegistry.put(id, a);
-        a.setId(id);
-        return id;
-    }
+    private ActionInstance visitAction(Action action, Map<Action, ActionInstance> action2InstanceMapping, int nextId) {
+        ActionInstance instance = action2InstanceMapping.get(action);
+        if (instance == null) {
+            instance = transform(action, nextId);
+            action2InstanceMapping.put(action, instance);
 
+            for (Action successor : action.getSuccessors()) {
+                ActionInstance successorActionInstance = visitAction(successor, action2InstanceMapping, ++nextId);
+                instance.addSuccessor(successorActionInstance);
+                successorActionInstance.addPredecessor(instance);
+            }
+        }
+        return instance;
+    }
 }

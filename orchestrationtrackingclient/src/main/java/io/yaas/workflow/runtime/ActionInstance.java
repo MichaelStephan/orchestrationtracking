@@ -1,51 +1,36 @@
 package io.yaas.workflow.runtime;
 
 import com.google.common.util.concurrent.SettableFuture;
-import io.yaas.workflow.Action;
+
 import io.yaas.workflow.ActionResult;
 import io.yaas.workflow.Arguments;
-import io.yaas.workflow.Node;
+import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
+
+import java.util.Collection;
 
 /**
  * Created by i303874 on 4/28/15.
  */
-public class ActionInstance extends Node {
-    protected String wid;
-    protected String aid;
-    protected String timestamp;
-    protected Action action;
 
-    public ActionInstance(Action action) {
-        this.action = action;
-    }
-    public ActionInstance(String wid, String aid, String timestamp, Action action) {
-        this.aid = aid;
-        this.wid = wid;
-        this.timestamp = timestamp;
-        this.action = action;
-    }
+public interface ActionInstance {
 
-    public Action getAction() {
-        return action;
-    }
+    void addSuccessor(ActionInstance action);
 
-    public String getTimestamp() {
-        return timestamp;
-    }
+    void addPredecessor(ActionInstance action);
 
-    public String getAid() {
-        return aid;
-    }
+    Collection<ActionInstance> getSuccessors();
 
-    public void setAid(String aid) {
-        this.aid = aid;
-    }
+    Collection<ActionInstance> getPredecessors();
 
-    public String getWid() {
-        return wid;
-    }
+    String getName();
 
-//    public void execute(ActionExecutor executor, Arguments arguments, SettableFuture<ActionResult> result) {
-//        executor.execute(this, arguments, result);
-//    }
+    String getVersion();
+
+    void start(String workflowId, WorkflowTrackingClient client);
+
+    void succeed(String workflowId, WorkflowTrackingClient client);
+
+    void error(String workflowId, WorkflowTrackingClient client, Throwable cause);
+
+    void execute(Arguments arguments, SettableFuture<ActionResult> result);
 }
