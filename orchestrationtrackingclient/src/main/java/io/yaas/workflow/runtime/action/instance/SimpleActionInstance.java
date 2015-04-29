@@ -1,9 +1,10 @@
-package io.yaas.workflow.runtime;
+package io.yaas.workflow.runtime.action.instance;
 
 import com.google.common.util.concurrent.SettableFuture;
 import io.yaas.workflow.Action;
 import io.yaas.workflow.ActionResult;
 import io.yaas.workflow.Arguments;
+import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 import io.yaas.workflow.runtime.tracker.model.ActionBean;
 import io.yaas.workflow.runtime.tracker.model.State;
@@ -48,20 +49,20 @@ public class SimpleActionInstance implements ActionInstance {
     }
 
     @Override
-    public void start(String workflowId, WorkflowTrackingClient client) {
-        this.lastCreatedTimestamp = client.createAction(new ActionBean(workflowId, getName(), getVersion(), getId())).timestamp;
+    public void start(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
+        this.lastCreatedTimestamp = client.createAction(new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId())).timestamp;
     }
 
     @Override
-    public void succeed(String workflowId, WorkflowTrackingClient client) {
-        ActionBean actionBean = new ActionBean(workflowId, getName(), getVersion(), getId(), lastCreatedTimestamp);
+    public void succeed(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
+        ActionBean actionBean = new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId(), lastCreatedTimestamp);
         actionBean.astate = State.SUCCEEDED;
         client.updateAction(actionBean);
     }
 
     @Override
-    public void error(String workflowId, WorkflowTrackingClient client, Throwable cause) {
-        ActionBean actionBean = new ActionBean(workflowId, getName(), getVersion(), getId(), lastCreatedTimestamp);
+    public void error(WorkflowInstance workflowInstance, WorkflowTrackingClient client, Throwable cause) {
+        ActionBean actionBean = new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId(), lastCreatedTimestamp);
         actionBean.astate = State.FAILED;
         client.updateAction(actionBean);
     }

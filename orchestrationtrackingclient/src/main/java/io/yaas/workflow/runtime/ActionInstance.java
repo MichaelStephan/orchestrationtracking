@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.SettableFuture;
 
 import io.yaas.workflow.ActionResult;
 import io.yaas.workflow.Arguments;
+import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 
 import java.util.Collection;
@@ -26,11 +27,11 @@ public interface ActionInstance {
 
     String getVersion();
 
-    void start(String workflowId, WorkflowTrackingClient client);
+    void start(WorkflowInstance workflowInstance, WorkflowTrackingClient client);
 
-    void succeed(String workflowId, WorkflowTrackingClient client);
+    void succeed(WorkflowInstance workflowInstance, WorkflowTrackingClient client);
 
-    void error(String workflowId, WorkflowTrackingClient client, Throwable cause);
+    void error(WorkflowInstance workflowInstance, WorkflowTrackingClient client, Throwable cause);
 
     void execute(Arguments arguments, SettableFuture<ActionResult> result);
 }

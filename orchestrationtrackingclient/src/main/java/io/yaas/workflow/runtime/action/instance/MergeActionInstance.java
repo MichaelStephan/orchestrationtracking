@@ -1,4 +1,4 @@
-package io.yaas.workflow.runtime;
+package io.yaas.workflow.runtime.action.instance;
 
 import com.google.common.util.concurrent.SettableFuture;
 import io.yaas.workflow.ActionResult;
@@ -25,17 +25,17 @@ public class MergeActionInstance extends SimpleActionInstance {
     }
 
     @Override
-    public void start(String workflowId, WorkflowTrackingClient client) {
+    public void start(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
 
     }
 
     @Override
-    public void succeed(String workflowId, WorkflowTrackingClient client) {
+    public void succeed(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
 
     }
 
     @Override
-    public void error(String workflowId, WorkflowTrackingClient client, Throwable cause) {
+    public void error(WorkflowInstance workflowInstance, WorkflowTrackingClient client, Throwable cause) {
 
     }
 

@@ -1,9 +1,11 @@
 package io.yaas.workflow;
 
 import io.yaas.workflow.runtime.ActionInstance;
-import io.yaas.workflow.runtime.MergeActionInstance;
-import io.yaas.workflow.runtime.SimpleActionInstance;
+import io.yaas.workflow.runtime.action.instance.EndActionInstance;
+import io.yaas.workflow.runtime.action.instance.MergeActionInstance;
+import io.yaas.workflow.runtime.action.instance.SimpleActionInstance;
 import io.yaas.workflow.runtime.WorkflowEngine;
+import io.yaas.workflow.runtime.action.instance.StartActionInstance;
 
 import java.util.*;
 
@@ -51,61 +53,68 @@ public class Workflow {
 
     public Action getStartAction() {
         if (_startAction == null) {
-            _startAction = new Action("Start action", "0.0", this);
-            _startAction.setFunction((actionInstance, arguments) -> {
-                return new ActionResult(actionInstance, new Arguments(arguments));
-            });
+            _startAction = new StartAction();
         }
         return _startAction;
     }
 
-//    private void print(ActionInstance action) {
-//        System.out.println("------");
-//        System.out.println(action.hashCode());
-//        System.out.println(action);
-//        for (ActionInstance s : action.getSuccessors()) {
-//            print(s);
-//        }
-//    }
+    private void print(ActionInstance action) {
+        System.out.println("------");
+        System.out.println(action.hashCode());
+        System.out.println(action);
+        for (ActionInstance s : action.getSuccessors()) {
+            print(s);
+        }
+    }
 
     private ActionInstance transform(Action action, int nextId) {
+        String id = Integer.toString(nextId);
+
         if (action instanceof MergeAction) {
-            return new MergeActionInstance(Integer.toString(nextId), MergeAction.class.cast(action), action.getPredecessors().size());
+            return new MergeActionInstance(id, MergeAction.class.cast(action), action.getPredecessors().size());
+        } else if (action instanceof StartAction) {
+            return new StartActionInstance(id, action);
+        } else if (action instanceof EndAction) {
+            return new EndActionInstance(id, action);
         } else {
-            return new SimpleActionInstance(Integer.toString(nextId), action);
+            return new SimpleActionInstance(id, action);
         }
     }
 
     public void execute(WorkflowEngine engine, Arguments arguments) {
         ActionInstance start = prepareExecute();
 
-//        print(start);
-
         engine.runWorkflow(this, start, arguments);
     }
 
     private ActionInstance prepareExecute() {
-        insertMergeActions();
-
+        insertMergeActions(getStartAction());
+        insertEndAction(getStartAction());
         return getActionInstances();
     }
 
-    private void insertMergeActions() {
-        mergeAction(getStartAction());
+    private void insertEndAction(Action a) {
+        for (Action successor : a.getSuccessors()) {
+            insertEndAction(successor);
+        }
+
+        if (a.getSuccessors().isEmpty() && !(a instanceof EndAction)) {
+            a.addAction(new EndAction());
+        }
     }
 
-    private void mergeAction(Action a) {
+    private void insertMergeActions(Action a) {
         for (Action successor : a.getSuccessors()) {
             if (a.getPredecessors().size() > 1 && !(a instanceof MergeAction)) {
                 a.insertBefore(new MergeAction(this));
             }
-            mergeAction(successor);
+            insertMergeActions(successor);
         }
     }
 
     private ActionInstance getActionInstances() {
         Map<Action, ActionInstance> action2InstanceMapping = new HashMap<>();
-        return visitAction(_startAction, action2InstanceMapping, 0);
+        return visitAction(getStartAction(), action2InstanceMapping, 0);
     }
 
     private ActionInstance visitAction(Action action, Map<Action, ActionInstance> action2InstanceMapping, int nextId) {

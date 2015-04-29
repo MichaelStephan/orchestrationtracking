@@ -18,7 +18,7 @@ public class WorkflowBean {
 		this.version = version;
 		this.wstate = State.STARTED;
 	}
-	
+
 	public WorkflowBean(Workflow w) {
 		this(w.getName(), w.getVersion());
 	}

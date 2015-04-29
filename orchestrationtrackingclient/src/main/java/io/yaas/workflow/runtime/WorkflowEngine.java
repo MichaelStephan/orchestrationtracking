@@ -6,6 +6,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import io.yaas.workflow.ActionResult;
 import io.yaas.workflow.Arguments;
 import io.yaas.workflow.Workflow;
+import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 import io.yaas.workflow.runtime.tracker.model.WorkflowBean;
 
@@ -30,23 +31,20 @@ public class WorkflowEngine {
         return bean.wid;
     }
 
-    public void runWorkflow(Workflow w, ActionInstance startActionInstance, Arguments arguments) {
-        String wid = onWorkflowStart(w);
-        runAction(wid, startActionInstance, arguments);
+    public void runWorkflow(Workflow workflow, ActionInstance startAction, Arguments arguments) {
+        runAction(new WorkflowInstance(workflow), startAction, arguments);
     }
 
-    private void runAction(String wid, ActionInstance action, Arguments arguments) {
-
-        action.start(wid, _trackingClient);
+    private void runAction(WorkflowInstance workflow, ActionInstance action, Arguments arguments) {
 
         SettableFuture<ActionResult> future = SettableFuture.create();
         Futures.addCallback(future, new FutureCallback<ActionResult>() {
             @Override
             public void onSuccess(ActionResult result) {
-                action.succeed(wid, _trackingClient);
+                action.succeed(workflow, _trackingClient);
 
                 action.getSuccessors().forEach((successor) -> {
-                    runAction(wid, successor, result.getResult());
+                    runAction(workflow, successor, result.getResult());
                 });
             }
 
@@ -58,9 +56,11 @@ public class WorkflowEngine {
         });
 
         try {
+            System.out.println(action);
+            action.start(workflow, _trackingClient);
             action.execute(arguments, future);
         } catch (Exception e) {
-            action.error(wid, _trackingClient, e);
+            action.error(workflow, _trackingClient, e);
         }
     }
 }
