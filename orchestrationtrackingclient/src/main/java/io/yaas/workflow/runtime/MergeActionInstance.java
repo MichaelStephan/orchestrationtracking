@@ -3,6 +3,8 @@ package io.yaas.workflow.runtime;
 import com.google.common.util.concurrent.SettableFuture;
 import io.yaas.workflow.ActionResult;
 import io.yaas.workflow.Arguments;
+import io.yaas.workflow.MergeAction;
+import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 
 import java.util.HashMap;
 import java.util.List;
@@ -10,21 +12,37 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class MergeActionExecutor extends ActionExecutor {
-
-    // TODO consider CountDownLatch instead
+/**
+ * Created by i303874 on 4/29/15.
+ */
+public class MergeActionInstance extends SimpleActionInstance {
     private AtomicInteger _count;
     private List<ActionResult> _results = new CopyOnWriteArrayList<>();
 
-    public MergeActionExecutor(ActionInstance actionInstance) {
-        super(actionInstance);
-        _count = new AtomicInteger(actionInstance.getAction().getPredecessors().size());
+    public MergeActionInstance(String id, MergeAction action, int count) {
+        super(id, action);
+        this._count = new AtomicInteger(count);
+    }
+
+    @Override
+    public void start(String workflowId, WorkflowTrackingClient client) {
+
+    }
+
+    @Override
+    public void succeed(String workflowId, WorkflowTrackingClient client) {
+
+    }
+
+    @Override
+    public void error(String workflowId, WorkflowTrackingClient client, Throwable cause) {
+
     }
 
     @Override
     public void execute(Arguments arguments, SettableFuture<ActionResult> result) {
         new Thread(() -> {
-            _results.add(new ActionResult(_actionInstance, arguments));
+            _results.add(new ActionResult(this, arguments));
             if (_count.decrementAndGet() == 0) {
                 // TODO make nicer !!!
                 Map<String, Object> consolidatedArguments = new HashMap<>();
@@ -32,9 +50,8 @@ class MergeActionExecutor extends ActionExecutor {
                     consolidatedArguments.putAll(argument.getResult());
                 });
 
-                result.set(new ActionResult(_actionInstance, new Arguments(consolidatedArguments)));
+                result.set(new ActionResult(this, new Arguments(consolidatedArguments)));
             }
         }).start();
     }
-
 }

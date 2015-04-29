@@ -1,13 +1,11 @@
 package io.yaas.workflow;
 
+import io.yaas.workflow.runtime.ActionInstance;
+import io.yaas.workflow.runtime.MergeActionInstance;
+import io.yaas.workflow.runtime.SimpleActionInstance;
 import io.yaas.workflow.runtime.WorkflowEngine;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Workflow {
 
@@ -18,8 +16,6 @@ public class Workflow {
 
     private ErrorHandler _onFailureHandler;
     private ErrorHandler _onUnknownHandler;
-
-    private Map<String, Action> _actionsRegistry = new HashMap<>();
 
     public Workflow(String name, int version) {
         _name = name;
@@ -63,37 +59,35 @@ public class Workflow {
         return _startAction;
     }
 
-    private String generateId(Action a, int i) {
-        return (a.getName() + "." + a.getVersion() + "." + i).replaceAll("\\s", "_");
-    }
-
-    public Action getAction(String id) {
-        return _actionsRegistry.get(id);
-    }
-
-//    private void print(Action action) {
+//    private void print(ActionInstance action) {
 //        System.out.println("------");
 //        System.out.println(action.hashCode());
 //        System.out.println(action);
-//        for (Action s : action.getSuccessors()) {
+//        for (ActionInstance s : action.getSuccessors()) {
 //            print(s);
 //        }
 //    }
 
-    public void execute(WorkflowEngine engine, Arguments arguments) {
-        prepareExecute();
-
-//        print(getStartAction());
-
-        engine.runWorkflow(this, arguments);
+    private ActionInstance transform(Action action, int nextId) {
+        if (action instanceof MergeAction) {
+            return new MergeActionInstance(Integer.toString(nextId), MergeAction.class.cast(action), action.getPredecessors().size());
+        } else {
+            return new SimpleActionInstance(Integer.toString(nextId), action);
+        }
     }
 
-    private void prepareExecute() {
+    public void execute(WorkflowEngine engine, Arguments arguments) {
+        ActionInstance start = prepareExecute();
+
+//        print(start);
+
+        engine.runWorkflow(this, start, arguments);
+    }
+
+    private ActionInstance prepareExecute() {
         insertMergeActions();
-        List<Action> linearized = getLinearizedActions();
-        for (int i = 0; i < linearized.size(); i++) {
-            registerAction(linearized.get(i), i);
-        }
+
+        return getActionInstances();
     }
 
     private void insertMergeActions() {
@@ -109,29 +103,23 @@ public class Workflow {
         }
     }
 
-    private List<Action> getLinearizedActions() {
-        List<Action> sorted = new LinkedList<Action>();
-        Set<Action> visited = new HashSet<>();
-        visitAction(visited, sorted, _startAction);
-        return sorted;
+    private ActionInstance getActionInstances() {
+        Map<Action, ActionInstance> action2InstanceMapping = new HashMap<>();
+        return visitAction(_startAction, action2InstanceMapping, 0);
     }
 
-    private void visitAction(Set<Action> visited, List<Action> sorted, Action a) {
-        if (!visited.contains(a)) {
-            sorted.add(a);
-            visited.add(a);
+    private ActionInstance visitAction(Action action, Map<Action, ActionInstance> action2InstanceMapping, int nextId) {
+        ActionInstance instance = action2InstanceMapping.get(action);
+        if (instance == null) {
+            instance = transform(action, nextId);
+            action2InstanceMapping.put(action, instance);
 
-            for (Action successor : a.getSuccessors()) {
-                visitAction(visited, sorted, successor);
+            for (Action successor : action.getSuccessors()) {
+                ActionInstance successorActionInstance = visitAction(successor, action2InstanceMapping, ++nextId);
+                instance.addSuccessor(successorActionInstance);
+                successorActionInstance.addPredecessor(instance);
             }
         }
+        return instance;
     }
-
-    private String registerAction(Action a, int i) {
-        String id = generateId(a, i);
-        _actionsRegistry.put(id, a);
-        a.setId(id);
-        return id;
-    }
-
 }

@@ -20,6 +20,7 @@ public class Action {
 			else return o1.getNameVersion().compareTo(o2.getNameVersion());
 		}
 	});
+
 	private Set<Action> _predecessors = new HashSet<Action>();
 	
 	private Workflow _w;

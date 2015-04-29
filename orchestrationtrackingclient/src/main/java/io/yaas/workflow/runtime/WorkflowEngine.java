@@ -3,14 +3,11 @@ package io.yaas.workflow.runtime;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
-import io.yaas.workflow.*;
+import io.yaas.workflow.ActionResult;
+import io.yaas.workflow.Arguments;
+import io.yaas.workflow.Workflow;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
-import io.yaas.workflow.runtime.tracker.model.ActionBean;
-import io.yaas.workflow.runtime.tracker.model.State;
 import io.yaas.workflow.runtime.tracker.model.WorkflowBean;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -21,28 +18,33 @@ public class WorkflowEngine {
 
     private WorkflowTrackingClient _trackingClient;
 
-    private Map<String, ActionExecutor> executors = new HashMap<>();
-
     public WorkflowEngine(String trackingEndpoint) {
         checkNotNull(trackingEndpoint);
         this._trackingClient = new WorkflowTrackingClient(trackingEndpoint);
     }
 
-    public void runWorkflow(Workflow w, Arguments arguments) {
-        String wid = onWorkflowStart(w);
-        runAction(wid, w.getStartAction(), arguments);
+
+    private String onWorkflowStart(Workflow w) {
+        System.out.println(w.getName() + " - started");
+        WorkflowBean bean = _trackingClient.createWorkflow(new WorkflowBean(w));
+        return bean.wid;
     }
 
-    private void runAction(String wid, Action action, Arguments arguments) {
-        ActionInstance actionInstance = onActionStart(wid, action);
+    public void runWorkflow(Workflow w, ActionInstance startActionInstance, Arguments arguments) {
+        String wid = onWorkflowStart(w);
+        runAction(wid, startActionInstance, arguments);
+    }
 
-        // TODO factory
-        ActionExecutor executor = getExecutor(actionInstance);
+    private void runAction(String wid, ActionInstance action, Arguments arguments) {
+
+        action.start(wid, _trackingClient);
+
         SettableFuture<ActionResult> future = SettableFuture.create();
         Futures.addCallback(future, new FutureCallback<ActionResult>() {
             @Override
             public void onSuccess(ActionResult result) {
-                onActionSuccess(actionInstance);
+                action.succeed(wid, _trackingClient);
+
                 action.getSuccessors().forEach((successor) -> {
                     runAction(wid, successor, result.getResult());
                 });
@@ -56,87 +58,9 @@ public class WorkflowEngine {
         });
 
         try {
-            executor.execute(arguments, future);
+            action.execute(arguments, future);
         } catch (Exception e) {
-            onActionError(actionInstance, e);
+            action.error(wid, _trackingClient, e);
         }
-    }
-
-    private ActionExecutor getExecutor(ActionInstance actionInstance) {
-        String aid = actionInstance.getAction().getId();
-        ActionExecutor executor = executors.get(aid);
-        if (executor == null) {
-            executor = ActionExecutor.create(actionInstance);
-            executors.put(aid, executor);
-        }
-
-        return executor;
-    }
-
-    private String onWorkflowStart(Workflow w) {
-        System.out.println(w.getName() + " - started");
-        WorkflowBean bean = _trackingClient.createWorkflow(new WorkflowBean(w));
-        return bean.wid;
-    }
-
-    private void onWorkflowSuccess(Workflow w) {
-
-        System.out.println(w.getName() + " - succeeded");
-    }
-
-    private void onWorkflowFailure(Workflow w, Throwable error) {
-
-        System.out.println(w.getName() + " - failed");
-    }
-
-    private void onWorkflowError(Workflow w, Throwable error) {
-
-        System.out.println(w.getName() + " - error");
-    }
-
-    private ActionInstance onActionStart(String wid, Action action) {
-        WorkflowBean workflowBean = new WorkflowBean();
-        workflowBean.wid = wid;
-
-        if (action instanceof MergeAction) {
-            // TODO !!!
-            ActionInstance actionInstance = new ActionInstance(wid, action.getId(), null, action);
-            return actionInstance;
-        } else {
-            ActionBean actionBean = _trackingClient.createAction(new ActionBean(workflowBean, action));
-            System.out.println(action.getName() + " - started");
-            return new ActionInstance(wid, actionBean.aid, actionBean.timestamp, action);
-        }
-    }
-
-    private void onActionSuccess(ActionInstance actionInstance) {
-        if (!(actionInstance.getAction() instanceof MergeAction)) {
-            ActionBean actionBean = new ActionBean(actionInstance);
-            actionBean.astate = State.SUCCEEDED;
-            _trackingClient.updateAction(actionBean);
-        }
-        System.out.println(actionInstance.getAction().getName() + " - succeeded");
-    }
-
-    // application error
-    private void onActionError(ActionInstance actionInstance, Throwable error) {
-        ActionBean actionBean = new ActionBean(actionInstance);
-        actionBean.astate = State.FAILED;
-        _trackingClient.updateAction(actionBean);
-        System.out.println(actionBean.name + " - error");
-
-        // TODO when to call onUnknown?
-        System.out.println(actionBean.name + " - failed: " + error.getClass() + ": " + error.getMessage());
-        error.printStackTrace();
-    }
-
-    // technical error
-    private void onActionFailure(ActionResult actionResult, Throwable error) {
-//        actionResult.getActionBean().astate = State.FAILED;
-//        _trackingClient.updateAction(actionResult.getActionBean());
-//        System.out.println(actionResult.getAction().getName() + " - failure");
-
-//        System.out.println(actionResult.getAction().getName() + " - failed: " + error.getClass() + ": " + error.getMessage());
-        error.printStackTrace();
     }
 }

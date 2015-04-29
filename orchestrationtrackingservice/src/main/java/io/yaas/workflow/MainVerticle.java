@@ -11,7 +11,7 @@ import org.vertx.java.platform.Verticle;
  * Created by i303874 on 3/9/15.
  */
 public class MainVerticle extends Verticle {
-    private final static int DEFAULT_API_HTTP_PORT = 8080;
+    private final static int DEFAULT_API_HTTP_PORT = 9080;
 
     private void propagateFutureResult(AsyncResult prevFuture, Future nextFuture) {
         if (prevFuture.succeeded()) {
@@ -23,18 +23,19 @@ public class MainVerticle extends Verticle {
     }
 
     private int getHttpAPIPort() {
+        int port = DEFAULT_API_HTTP_PORT;
         try {
-            return getContainer().config().getInteger("PORT");
+            port = getContainer().config().getInteger("PORT");
         } catch (Exception e) {
             String tmpPort = System.getenv().get("PORT");
             try {
-                return Integer.parseInt(tmpPort);
+                port = Integer.parseInt(tmpPort);
             } catch (Exception e1) {
                 //ignore;
             }
-
-            return DEFAULT_API_HTTP_PORT;
         }
+        container.logger().info("using port: " + port);
+        return port;
     }
 
     public void start() {
