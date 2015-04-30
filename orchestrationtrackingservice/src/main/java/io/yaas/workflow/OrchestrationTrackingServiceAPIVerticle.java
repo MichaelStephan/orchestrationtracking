@@ -67,9 +67,10 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
 
         rm.get("/workflows", (req) -> {
             handleMessage(req, OrchestrationTrackingServiceVerticle.LIST_WORKFLOWS_ADDRESS, (address, body) -> {
+                container.logger().info("received GET /workflows " + body);
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
-                        req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end(asyncResult.result().body().toString());
+                        req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end(asyncResult.result().body().encode());
                     }, (ignore) -> {
                         req.response().setStatusCode(500).end();
                     });
@@ -79,9 +80,10 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
 
         rm.post("/workflows", (req) -> {
             handleMessage(req, OrchestrationTrackingServiceVerticle.CREATE_AND_START_WORKFLOW_ADDRESS, (address, body) -> {
+                container.logger().info("received POST /workflows " + body);
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
-                        req.response().setStatusCode(201).putHeader("Content-Type", "application/json").end(asyncResult.result().body().toString());
+                        req.response().setStatusCode(201).putHeader("Content-Type", "application/json").end(asyncResult.result().body().encode());
                     }, (ignore) -> {
                         req.response().setStatusCode(500).end();
                     });
@@ -92,6 +94,7 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
         rm.put("/workflows/:wid", (req) -> {
             handleMessage(req, OrchestrationTrackingServiceVerticle.UPDATE_WORKFLOW_ADDRESS, (address, body) -> {
                 body.putString("wid", checkNotNull(req.params().get("wid")));
+                container.logger().info("received PUT /workflows/:wid " + body);
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
                         req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end();
@@ -105,9 +108,10 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
         rm.post("/workflows/:wid/actions", (req) -> {
             handleMessage(req, OrchestrationTrackingServiceVerticle.CREATE_AND_START_ACTION_ADDRESS, (address, body) -> {
                 body.putString("wid", checkNotNull(req.params().get("wid")));
+                container.logger().info("received POST /workflows/:wid/actions " + body);
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
-                        req.response().setStatusCode(201).putHeader("Content-Type", "application/json").end(asyncResult.result().body().toString());
+                        req.response().setStatusCode(201).putHeader("Content-Type", "application/json").end(asyncResult.result().body().encode());
                     }, (ignore) -> {
                         req.response().setStatusCode(500).end();
                     });
@@ -120,9 +124,26 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
                 body.putString("wid", checkNotNull(req.params().get("wid")));
                 body.putString("aid", checkNotNull(req.params().get("aid")));
                 body.putString("timestamp", checkNotNull(req.params().get("timestamp")));
+                container.logger().info("received PUT /workflows/:wid/actions/:aid/:timestamp " + body);
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
                         req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end();
+                    }, (ignore) -> {
+                        req.response().setStatusCode(500).end();
+                    });
+                });
+            });
+        });
+
+        rm.get("/workflows/:wid/actions/:aid/:timestamp/data", (req) -> {
+            handleMessage(req, OrchestrationTrackingServiceVerticle.GET_ACTION_DATA_ADDRESS, (address, body) -> {
+                body.putString("wid", checkNotNull(req.params().get("wid")));
+                body.putString("aid", checkNotNull(req.params().get("aid")));
+                body.putString("timestamp", checkNotNull(req.params().get("timestamp")));
+                container.logger().info("received GET /workflows/:wid/actions/:aid/:timestamp/data " + body);
+                vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+                    Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
+                        req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end(asyncResult.result().body().encode());
                     }, (ignore) -> {
                         req.response().setStatusCode(500).end();
                     });
