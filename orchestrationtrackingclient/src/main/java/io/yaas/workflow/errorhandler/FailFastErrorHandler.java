@@ -1,15 +1,16 @@
-package io.yaas.workflow.runtime;
+package io.yaas.workflow.errorhandler;
 
 import io.yaas.workflow.ActionErrorHandler;
 import io.yaas.workflow.Arguments;
+import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 
 /**
  * Created by i303874 on 4/29/15.
  */
-public class FailFastActionErrorHandler implements ActionErrorHandler {
+public class FailFastErrorHandler implements ActionErrorHandler {
 
-    public FailFastActionErrorHandler() {
+    public FailFastErrorHandler() {
     }
 
     @Override

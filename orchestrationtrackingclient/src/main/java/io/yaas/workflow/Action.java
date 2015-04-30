@@ -1,7 +1,6 @@
 package io.yaas.workflow;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,7 +21,7 @@ public class Action {
 
     private Workflow _w;
 
-    protected Body _body;
+    protected ActionFunction _body;
 
     private ActionErrorHandler _onError;
 
@@ -46,7 +45,7 @@ public class Action {
         _version = version;
     }
 
-    public Action(String name, String version, Body f) {
+    public Action(String name, String version, ActionFunction f) {
         _name = name;
         _version = version;
         _body = f;
@@ -58,7 +57,7 @@ public class Action {
         return successor;
     }
 
-    public Action setFunction(Body f) {
+    public Action setFunction(ActionFunction f) {
         if (_body != null)
             throw new IllegalStateException();
         _body = f;
@@ -87,7 +86,7 @@ public class Action {
         return _successors;
     }
 
-    public Body getFunction() {
+    public ActionFunction getFunction() {
         return _body;
     }
 

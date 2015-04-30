@@ -15,6 +15,10 @@ public class WorkflowInstance {
 
     private String id;
 
+    public WorkflowTrackingClient getTrackingClient() {
+        return client;
+    }
+
     private WorkflowTrackingClient client;
 
     public WorkflowInstance(Workflow workflow, WorkflowTrackingClient client) {

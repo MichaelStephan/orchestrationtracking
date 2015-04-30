@@ -4,7 +4,7 @@ import io.yaas.workflow.Action;
 import io.yaas.workflow.ActionResult;
 import io.yaas.workflow.Arguments;
 import io.yaas.workflow.Workflow;
-import io.yaas.workflow.runtime.CustomUndoActionErrorHandler;
+import io.yaas.workflow.errorhandler.UndoActionErrorHandler;
 import io.yaas.workflow.runtime.WorkflowEngine;
 
 import java.math.BigDecimal;
@@ -31,7 +31,7 @@ public class Main {
                             .build())
                     .build()));
         });
-        getShoppingCart.setErrorHandler(new CustomUndoActionErrorHandler((cause, arguments) -> {
+        getShoppingCart.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
             System.out.println("getShoppingCart an issue occured !!!" + arguments);
             return null;
         }));
@@ -46,9 +46,10 @@ public class Main {
                     .put("cartprice", BigDecimal.valueOf(100.0))
                     .build()));
         });
-        calculateCartPrice.setErrorHandler(new CustomUndoActionErrorHandler((cause, arguments) -> {
+        calculateCartPrice.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
             System.out.println("calculateCartPrice an issue occured !!!" + arguments);
-            return null;
+            throw new RuntimeException("crash!!");
+            // return null;
         }));
 
         // "reserve stock"
@@ -57,7 +58,7 @@ public class Main {
             Set<Map.Entry<String, String>> cartEntries = Preconditions.checkNotNull(Map.class.cast(arguments.get("cart"))).entrySet();
             return new ActionResult(arguments);
         });
-        reserveStock.setErrorHandler(new CustomUndoActionErrorHandler((cause, arguments) -> {
+        reserveStock.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
             System.out.println("reserveStock an issue occured !!!" + arguments);
             return null;
         }));
@@ -69,7 +70,7 @@ public class Main {
 
             return new ActionResult(arguments);
         });
-        capturePayment.setErrorHandler(new CustomUndoActionErrorHandler((cause, arguments) -> {
+        capturePayment.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
             System.out.println("capturePayment an issue occured !!!" + arguments);
             return null;
         }));
@@ -83,7 +84,7 @@ public class Main {
 
 //            return new ActionResult(arguments);
         });
-        createOrder.setErrorHandler(new CustomUndoActionErrorHandler((cause, arguments) -> {
+        createOrder.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
             System.out.println("createOrder an issue occured !!!" + arguments);
             return null;
         }));

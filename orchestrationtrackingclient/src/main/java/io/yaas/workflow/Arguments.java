@@ -1,13 +1,10 @@
 package io.yaas.workflow;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Arguments implements Map<String, Object> {
-	
+	private static final String ERROR_FIELD_NAME = "io.yaas.error";
+
 	private Map<String, Object> _args;
 	
 	public static Arguments EMPTY_ARGUMENTS = new Arguments(Collections.emptyMap());
@@ -78,4 +75,14 @@ public class Arguments implements Map<String, Object> {
 		return _args.values();
 	}
 
+	public synchronized void addError(Throwable error) {
+		Map<String, Object> tmp = new HashMap<>();
+		tmp.putAll(_args);
+		tmp.put(ERROR_FIELD_NAME, error);
+		_args = Collections.unmodifiableMap(tmp);
+	}
+
+	public Throwable getError() {
+		return (Throwable)get(ERROR_FIELD_NAME);
+	}
 }
