@@ -20,7 +20,7 @@ public class EndActionInstance extends SimpleActionInstance {
     }
 
     @Override
-    public void succeed(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
+    public void succeed(WorkflowInstance workflowInstance, ActionResult result, WorkflowTrackingClient client) {
         workflowInstance.succeed();
     }
 

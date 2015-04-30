@@ -2,6 +2,8 @@ package io.yaas.workflow.runtime.tracker.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.Map;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ActionBean {
     public String aid;
@@ -10,6 +12,7 @@ public class ActionBean {
     public String name;
     public String version;
     public State astate;
+    public Map<String, Object> data;
 
     public ActionBean() {
     }

@@ -13,7 +13,9 @@ import java.util.Collection;
  */
 public interface ExecutionStrategy {
     void start(WorkflowInstance workflow, ActionInstance action);
-    void success(WorkflowInstance workflow, ActionInstance action);
+
+    void success(WorkflowInstance workflow, ActionResult result, ActionInstance action);
+
     void error(WorkflowInstance workflow, ActionInstance action, Arguments arguments, Throwable cause);
 
     void execute(WorkflowInstance workflow, ActionInstance action, Arguments arguments, SettableFuture<ActionResult> result);

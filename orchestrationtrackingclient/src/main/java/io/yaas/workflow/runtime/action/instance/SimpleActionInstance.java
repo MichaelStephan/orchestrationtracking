@@ -54,9 +54,10 @@ public class SimpleActionInstance implements ActionInstance {
     }
 
     @Override
-    public void succeed(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
+    public void succeed(WorkflowInstance workflowInstance, ActionResult result, WorkflowTrackingClient client) {
         ActionBean actionBean = new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId(), lastCreatedTimestamp);
         actionBean.astate = State.SUCCEEDED;
+        actionBean.data = result.getResult();
         client.updateAction(actionBean);
     }
 

@@ -30,7 +30,7 @@ public class RecoveryExecutor extends AbstractExecutor {
     }
 
     @Override
-    public void success(WorkflowInstance workflow, ActionInstance action) {
+    public void success(WorkflowInstance workflow, ActionResult result, ActionInstance action) {
 
     }
 

@@ -24,7 +24,7 @@ public class WorkflowProcessor {
         Futures.addCallback(future, new FutureCallback<ActionResult>() {
             @Override
             public void onSuccess(ActionResult result) {
-                executor.success(workflow, action);
+                executor.success(workflow, result, action);
 
                 executor.getNext(action).forEach((next) -> {
                     process(executor, next, result.getResult());

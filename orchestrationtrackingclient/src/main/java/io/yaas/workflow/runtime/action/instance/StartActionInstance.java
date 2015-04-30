@@ -24,7 +24,7 @@ public class StartActionInstance extends SimpleActionInstance {
         workflowInstance.start();
     }
 
-    public void succeed(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
+    public void succeed(WorkflowInstance workflowInstance, ActionResult result, WorkflowTrackingClient client) {
     }
 
     public void error(WorkflowInstance workflowInstance, ActionInstance actionInstance, Arguments arguments, WorkflowTrackingClient client, Throwable cause) {

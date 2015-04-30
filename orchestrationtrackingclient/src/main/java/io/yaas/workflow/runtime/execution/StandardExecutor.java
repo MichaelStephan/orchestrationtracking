@@ -29,8 +29,8 @@ public class StandardExecutor extends AbstractExecutor {
     }
 
     @Override
-    public void success(WorkflowInstance workflow, ActionInstance action) {
-        action.succeed(workflow, workflow.getTrackingClient());
+    public void success(WorkflowInstance workflow, ActionResult result, ActionInstance action) {
+        action.succeed(workflow, result, workflow.getTrackingClient());
     }
 
     @Override

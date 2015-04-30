@@ -30,7 +30,7 @@ public interface ActionInstance {
 
     void start(WorkflowInstance workflowInstance, WorkflowTrackingClient client);
 
-    void succeed(WorkflowInstance workflowInstance, WorkflowTrackingClient client);
+    void succeed(WorkflowInstance workflowInstance, ActionResult result, WorkflowTrackingClient client);
 
     void error(WorkflowInstance workflowInstance, WorkflowTrackingClient client, Throwable cause);
 
