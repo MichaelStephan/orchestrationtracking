@@ -22,14 +22,18 @@ public class UndoActionErrorHandler implements ActionErrorHandler {
 
     @Override
     public void execute(WorkflowInstance workflowInstance, ActionInstance actionInstance, Arguments arguments, Throwable cause) {
-        function.apply(cause, arguments);
+        try {
+            function.apply(cause, arguments);
 
-        actionInstance.getPredecessors().stream().forEach(predecessor -> {
-            ActionErrorHandler errorHandler = predecessor.getAction().getErrorHandler();
-            if (errorHandler == null) {
-                errorHandler = new ContinueErrorHandler();
-            }
-            errorHandler.execute(workflowInstance, predecessor, new Arguments(Collections.emptyMap()), new Exception());
-        });
+            actionInstance.getPredecessors().stream().forEach(predecessor -> {
+                ActionErrorHandler errorHandler = predecessor.getAction().getErrorHandler();
+                if (errorHandler == null) {
+                    errorHandler = new ContinueErrorHandler();
+                }
+                errorHandler.execute(workflowInstance, predecessor, new Arguments(Collections.emptyMap()), new Exception());
+            });
+        } catch (Exception e) {
+            new FailFastErrorHandler().execute(workflowInstance, actionInstance, arguments, e);
+        }
     }
 }
