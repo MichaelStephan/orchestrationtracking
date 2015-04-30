@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import io.yaas.workflow.runtime.tracker.model.ActionBean;
-import io.yaas.workflow.runtime.tracker.model.State;
+import io.yaas.workflow.runtime.tracker.model.ResultBean;
 import io.yaas.workflow.runtime.tracker.model.WorkflowBean;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -145,16 +145,52 @@ public class WorkflowTrackingClient {
         return outputAction;
     }
 
+    public ResultBean getActionData(ActionBean inputAction) {
+        ResultBean outputAction = null;
+        try {
+            outputAction = _resource
+                    .path("workflows")
+                    .path(String.valueOf(inputAction.wid))
+                    .path("actions")
+                    .path(String.valueOf(inputAction.aid))
+                    .path(String.valueOf(inputAction.timestamp))
+                    .path("data")
+                    .request(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .header("content-type", "application/json")
+                    .get().readEntity(ResultBean.class);
+            System.out.println(String.format(
+                    "GET [%s] to [%s], status code [%d], returned data: "
+                            + System.getProperty("line.separator") + "%s",
+                    asString(inputAction), _endpoint, 200, asString(outputAction)));
+        } catch (WebApplicationException e) {
+            System.out.println(String.format(
+                    "PUT [%s] to [%s] failed, status code [%d]",
+                    asString(inputAction), _endpoint, e.getResponse().getStatus()));
+        } catch (ProcessingException e) {
+            System.out.println("Request processing exception");
+            e.printStackTrace();
+        }
+        return outputAction;
+    }
+
     public static void main(String[] args) {
 
-        WorkflowTrackingClient cli = new WorkflowTrackingClient("http://localhost:8080");
-        WorkflowBean testWorkflow = new WorkflowBean("workflow_" + System.currentTimeMillis(), 1);
-        testWorkflow = cli.createWorkflow(testWorkflow);
-        ActionBean testAction = new ActionBean(testWorkflow.wid, "action_" + System.currentTimeMillis(), "1", String.valueOf(System.currentTimeMillis()));
-        cli.createAction(testAction);
-        testAction.astate = State.FAILED;
-        cli.updateAction(testAction);
-        testWorkflow.wstate = State.SUCCEEDED;
-        cli.updateWorkflow(testWorkflow);
+        WorkflowTrackingClient cli = new WorkflowTrackingClient("http://localhost:9081");
+
+        ActionBean bean = new ActionBean();
+        bean.wid = "52b5692b-d327-4a46-b3c9-42ae7ba6ba01";
+        bean.aid = "1_GetShoppingCart_1.0";
+        bean.timestamp = "436c2c50-ef12-11e4-b742-1127ca42b8a9";
+        ResultBean r = cli.getActionData(bean);
+        System.out.println(r);
+//        WorkflowBean testWorkflow = new WorkflowBean("workflow_" + System.currentTimeMillis(), 1);
+//        testWorkflow = cli.createWorkflow(testWorkflow);
+//        ActionBean testAction = new ActionBean(testWorkflow.wid, "action_" + System.currentTimeMillis(), "1", String.valueOf(System.currentTimeMillis()));
+//        cli.createAction(testAction);
+//        testAction.astate = State.FAILED;
+//        cli.updateAction(testAction);
+//        testWorkflow.wstate = State.SUCCEEDED;
+//        cli.updateWorkflow(testWorkflow);
     }
 }
