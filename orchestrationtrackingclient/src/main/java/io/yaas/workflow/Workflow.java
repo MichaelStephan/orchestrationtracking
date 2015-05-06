@@ -1,11 +1,8 @@
 package io.yaas.workflow;
 
 import io.yaas.workflow.runtime.ActionInstance;
-import io.yaas.workflow.runtime.action.instance.EndActionInstance;
-import io.yaas.workflow.runtime.action.instance.MergeActionInstance;
-import io.yaas.workflow.runtime.action.instance.SimpleActionInstance;
+import io.yaas.workflow.runtime.action.instance.*;
 import io.yaas.workflow.runtime.WorkflowEngine;
-import io.yaas.workflow.runtime.action.instance.StartActionInstance;
 
 import java.util.*;
 
@@ -72,6 +69,8 @@ public class Workflow {
 
         if (action instanceof MergeAction) {
             return new MergeActionInstance(id, MergeAction.class.cast(action), action.getPredecessors().size());
+        } else if (action instanceof SplitAction) {
+            return new SplitActionInstance(id, SplitAction.class.cast(action), action.getSuccessors().size());
         } else if (action instanceof StartAction) {
             return new StartActionInstance(id, action);
         } else if (action instanceof EndAction) {
@@ -84,11 +83,14 @@ public class Workflow {
     public void execute(WorkflowEngine engine, Arguments arguments) {
         ActionInstance start = prepareExecute();
 
-        engine.runWorkflow(this, start, arguments);
+        print(start);
+
+//        engine.runWorkflow(this, start, arguments);
     }
 
     private ActionInstance prepareExecute() {
         insertMergeActions(getStartAction());
+        insertSplitActions(getStartAction());
         insertEndAction(getStartAction());
         return getActionInstances();
     }
@@ -104,11 +106,22 @@ public class Workflow {
     }
 
     private void insertMergeActions(Action a) {
+        if (a.getPredecessors().size() > 1 && !(a instanceof MergeAction)) {
+            a.insertBefore(new MergeAction(this));
+        }
+
         for (Action successor : a.getSuccessors()) {
-            if (a.getPredecessors().size() > 1 && !(a instanceof MergeAction)) {
-                a.insertBefore(new MergeAction(this));
-            }
             insertMergeActions(successor);
+        }
+    }
+
+    private void insertSplitActions(Action a) {
+        if (a.getSuccessors().size() > 1 && !(a instanceof SplitAction)) {
+            a.insertAfter(new SplitAction(this));
+        }
+
+        for (Action successor : a.getSuccessors()) {
+            insertSplitActions(successor);
         }
     }
 

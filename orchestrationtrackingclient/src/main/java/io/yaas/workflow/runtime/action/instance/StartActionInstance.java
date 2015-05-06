@@ -4,8 +4,9 @@ import com.google.common.util.concurrent.SettableFuture;
 import io.yaas.workflow.Action;
 import io.yaas.workflow.ActionResult;
 import io.yaas.workflow.Arguments;
-import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
+
+import java.util.Collections;
 
 /**
  * Created by i303874 on 4/29/15.
@@ -15,18 +16,18 @@ public class StartActionInstance extends SimpleActionInstance {
         super(id, action);
     }
 
+    public void start(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
+        workflowInstance.start();
+        super.start(workflowInstance, client);
+    }
+
     @Override
     public void execute(Arguments arguments, SettableFuture<ActionResult> result) {
         result.set(new ActionResult(arguments));
     }
 
-    public void start(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
-        workflowInstance.start();
-    }
-
-    public void succeed(WorkflowInstance workflowInstance, ActionResult result, WorkflowTrackingClient client) {
-    }
-
-    public void error(WorkflowInstance workflowInstance, ActionInstance actionInstance, Arguments arguments, WorkflowTrackingClient client, Throwable cause) {
+    @Override
+    public ActionResult restore(WorkflowInstance workflowInstance) {
+        return new ActionResult(new Arguments(Collections.emptyMap()));
     }
 }

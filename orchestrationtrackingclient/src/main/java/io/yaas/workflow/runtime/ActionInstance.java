@@ -35,4 +35,6 @@ public interface ActionInstance {
     void error(WorkflowInstance workflowInstance, WorkflowTrackingClient client, Throwable cause);
 
     void execute(Arguments arguments, SettableFuture<ActionResult> result);
+
+    ActionResult restore(WorkflowInstance workflowInstance);
 }

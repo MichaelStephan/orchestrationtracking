@@ -7,6 +7,7 @@ import io.yaas.workflow.Arguments;
 import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 import io.yaas.workflow.runtime.tracker.model.ActionBean;
+import io.yaas.workflow.runtime.tracker.model.ResultBean;
 import io.yaas.workflow.runtime.tracker.model.State;
 
 import java.util.Collection;
@@ -105,5 +106,16 @@ public class SimpleActionInstance implements ActionInstance {
     @Override
     public Collection<ActionInstance> getPredecessors() {
         return this.predecessors;
+    }
+
+    @Override
+    public ActionResult restore(WorkflowInstance workflowInstance) {
+        ActionBean bean = new ActionBean();
+        bean.wid = workflowInstance.getId();
+        bean.aid = getId();
+        bean.timestamp = lastCreatedTimestamp;
+
+        ResultBean result = workflowInstance.getTrackingClient().getActionData(bean);
+        return new ActionResult(new Arguments(result.result));
     }
 }
