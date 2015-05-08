@@ -1,5 +1,7 @@
 package io.yaas.workflow;
 
+import io.yaas.workflow.errorhandler.UndoActionErrorHandler;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,7 +69,9 @@ public class Action {
     }
 
     public ActionErrorHandler getErrorHandler() {
-        return _onError;
+        return _onError == null ?
+                new UndoActionErrorHandler((cause, arguments) -> null)
+                : _onError;
     }
 
     public Workflow getWorkflow() {

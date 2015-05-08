@@ -6,6 +6,7 @@ import io.yaas.workflow.Arguments;
 import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 import io.yaas.workflow.runtime.traversal.ForwardTraversal;
+import io.yaas.workflow.runtime.traversal.TraversalStrategy;
 
 /**
  * Created by D032705 on 30.04.2015.
@@ -18,9 +19,6 @@ public class StandardExecutor extends AbstractExecutor {
             INSTANCE = new StandardExecutor();
         }
         return INSTANCE;
-    }
-    public StandardExecutor() {
-        super(ForwardTraversal.getInstance());
     }
 
     @Override
@@ -41,5 +39,10 @@ public class StandardExecutor extends AbstractExecutor {
     @Override
     public void execute(WorkflowInstance workflow, ActionInstance action, Arguments arguments, SettableFuture<ActionResult> result) {
         action.execute(arguments, result);
+    }
+
+    @Override
+    public TraversalStrategy getTraversalStrategy(ActionInstance action) {
+        return ForwardTraversal.getInstance();
     }
 }

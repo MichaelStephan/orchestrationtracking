@@ -28,11 +28,16 @@ public interface ActionInstance {
 
     String getVersion();
 
+    // TODO clean WorkflowTrackingClient client
     void start(WorkflowInstance workflowInstance, WorkflowTrackingClient client);
 
     void succeed(WorkflowInstance workflowInstance, ActionResult result, WorkflowTrackingClient client);
 
     void error(WorkflowInstance workflowInstance, WorkflowTrackingClient client, Throwable cause);
+
+    void errorHandlerSuccess(WorkflowInstance workflowInstance, WorkflowTrackingClient client);
+
+    void errorHandlerError(WorkflowInstance workflowInstance, WorkflowTrackingClient client);
 
     void execute(Arguments arguments, SettableFuture<ActionResult> result);
 

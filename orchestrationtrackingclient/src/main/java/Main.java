@@ -46,11 +46,11 @@ public class Main {
                     .put("cartprice", BigDecimal.valueOf(100.0))
                     .build()));
         });
-        calculateCartPrice.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
-            System.out.println("calculateCartPrice an issue occured !!!" + arguments);
-//            throw new RuntimeException("crash!!");
-            return null;
-        }));
+//        calculateCartPrice.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
+//            System.out.println("calculateCartPrice an issue occured !!!" + arguments);
+////            throw new RuntimeException("crash!!");
+//            return null;
+//        }));
 
         // "reserve stock"
 
@@ -58,10 +58,10 @@ public class Main {
             Set<Map.Entry<String, String>> cartEntries = Preconditions.checkNotNull(Map.class.cast(arguments.get("cart"))).entrySet();
             return new ActionResult(arguments);
         });
-        reserveStock.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
-            System.out.println("reserveStock an issue occured !!!" + arguments);
-            return null;
-        }));
+//        reserveStock.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
+//            System.out.println("reserveStock an issue occured !!!" + arguments);
+//            return null;
+//        }));
 
         // "capture payment"
 
@@ -70,10 +70,10 @@ public class Main {
 
             return new ActionResult(arguments);
         });
-        capturePayment.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
-            System.out.println("capturePayment an issue occured !!!" + arguments);
-            return null;
-        }));
+//        capturePayment.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
+//            System.out.println("capturePayment an issue occured !!!" + arguments);
+//            return null;
+//        }));
 
         // "create order"
 

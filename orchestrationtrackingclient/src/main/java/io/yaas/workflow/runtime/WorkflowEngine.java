@@ -8,7 +8,7 @@ import io.yaas.workflow.Arguments;
 import io.yaas.workflow.Workflow;
 import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 import io.yaas.workflow.runtime.execution.ExecutionStrategy;
-import io.yaas.workflow.runtime.execution.RecoveryExecutor;
+import io.yaas.workflow.runtime.execution.ErrorExecutor;
 import io.yaas.workflow.runtime.execution.StandardExecutor;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 
@@ -45,13 +45,16 @@ public class WorkflowEngine {
 
             @Override
             public void onFailure(Throwable cause) {
+                // TODO leads to infinite loop in case of fail fast fails
+
                 executor.error(workflow, action, arguments, cause);
                 // throw new Exception(cause);
                 arguments.addError(cause);
-                runAction(RecoveryExecutor.getInstance(), workflow, action, arguments);
+                runAction(new ErrorExecutor(), workflow, action, arguments);
             }
         });
         executor.start(workflow, action);
+
         executor.execute(workflow, action, arguments, future);
     }
 }

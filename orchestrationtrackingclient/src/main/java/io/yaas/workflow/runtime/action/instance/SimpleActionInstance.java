@@ -70,6 +70,20 @@ public class SimpleActionInstance implements ActionInstance {
     }
 
     @Override
+    public void errorHandlerSuccess(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
+        ActionBean actionBean = new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId(), lastCreatedTimestamp);
+        actionBean.aestate = State.SUCCEEDED;
+        client.updateActionErrorState(actionBean);
+    }
+
+    @Override
+    public void errorHandlerError(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
+        ActionBean actionBean = new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId(), lastCreatedTimestamp);
+        actionBean.aestate = State.FAILED;
+        client.updateActionErrorState(actionBean);
+    }
+
+    @Override
     public void execute(Arguments arguments, SettableFuture<ActionResult> result) {
         new Thread(() -> {
             try {

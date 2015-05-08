@@ -4,6 +4,8 @@ import io.yaas.workflow.ActionErrorHandler;
 import io.yaas.workflow.Arguments;
 import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
+import io.yaas.workflow.runtime.traversal.ForwardTraversal;
+import io.yaas.workflow.runtime.traversal.TraversalStrategy;
 
 import java.util.Collections;
 
@@ -20,5 +22,10 @@ public class ContinueErrorHandler implements ActionErrorHandler {
             }
             errorHandler.execute(workflowInstance, predecessor, new Arguments(Collections.emptyMap()), new Exception());
         });
+    }
+
+    @Override
+    public TraversalStrategy getTraversalStrategy() {
+        return ForwardTraversal.getInstance();
     }
 }
