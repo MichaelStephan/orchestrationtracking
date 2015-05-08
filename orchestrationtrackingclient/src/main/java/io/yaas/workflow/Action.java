@@ -1,10 +1,6 @@
 package io.yaas.workflow;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Action {
@@ -113,10 +109,13 @@ public class Action {
     }
 
     void insertAfter(Action successor) {
-        for (Action a : getSuccessors()) {
+        for (Iterator<Action> ia = getSuccessors().iterator(); ia.hasNext(); ) {
+            Action a = ia.next();
             successor.addSuccessor(a);
-            removeSuccessor(a);
+            ia.remove();
+            successor.removePredecessor(this);
         }
+
         addSuccessor(successor);
     }
 

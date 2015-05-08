@@ -24,12 +24,13 @@ public class SplitActionInstance extends SimpleActionInstance {
 
     @Override
     public void execute(Arguments arguments, SettableFuture<ActionResult> result) {
-        new Thread(() -> {
-            _results.add(new ActionResult(arguments));
-            if (_count.decrementAndGet() == 0) {
-                result.set(new ActionResult(arguments));
-            }
-        }).start();
+//        new Thread(() -> {
+//            _results.add(new ActionResult(arguments));
+//            if (_count.decrementAndGet() == 0) {
+//                result.set(new ActionResult(arguments));
+//            }
+//        }).start();
+        result.set(new ActionResult(arguments));
     }
 
     @Override

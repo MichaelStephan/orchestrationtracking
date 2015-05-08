@@ -4,6 +4,8 @@ import com.google.common.util.concurrent.SettableFuture;
 import io.yaas.workflow.ActionResult;
 import io.yaas.workflow.Arguments;
 import io.yaas.workflow.MergeAction;
+import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
+import io.yaas.workflow.runtime.tracker.model.ActionBean;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,10 +20,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MergeActionInstance extends SimpleActionInstance {
     private AtomicInteger _count;
     private List<ActionResult> _results = new CopyOnWriteArrayList<>();
+    private Object lastCreatedTimestampLock = new Object();
 
     public MergeActionInstance(String id, MergeAction action, int count) {
         super(id, action);
         this._count = new AtomicInteger(count);
+    }
+
+    @Override
+    public void start(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
+        synchronized (lastCreatedTimestampLock) {
+            if (this.lastCreatedTimestamp == null) {
+                this.lastCreatedTimestamp = client.createAction(new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId())).timestamp;
+            }
+        }
     }
 
     @Override

@@ -48,8 +48,8 @@ public class Main {
         });
         calculateCartPrice.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
             System.out.println("calculateCartPrice an issue occured !!!" + arguments);
-            throw new RuntimeException("crash!!");
-            // return null;
+//            throw new RuntimeException("crash!!");
+            return null;
         }));
 
         // "reserve stock"

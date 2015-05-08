@@ -28,7 +28,7 @@ public class SimpleActionInstance implements ActionInstance {
 
     private String id;
 
-    private String lastCreatedTimestamp;
+    protected String lastCreatedTimestamp;
 
     public SimpleActionInstance(String id, Action action) {
         this.id = checkNotNull(id);

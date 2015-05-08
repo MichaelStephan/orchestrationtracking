@@ -145,6 +145,34 @@ public class WorkflowTrackingClient {
         return outputAction;
     }
 
+    public ActionBean updateActionErrorState(ActionBean inputAction) {
+        ActionBean outputAction = null;
+        try {
+            outputAction = _resource
+                    .path("workflows")
+                    .path(String.valueOf(inputAction.wid))
+                    .path("actions")
+                    .path(String.valueOf(inputAction.aid))
+                    .path(String.valueOf(inputAction.timestamp))
+                    .path("aestate")
+                    .request(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .put(Entity.entity(inputAction, MediaType.APPLICATION_JSON), ActionBean.class);
+            System.out.println(String.format(
+                    "PUT [%s] to [%s], status code [%d], returned data: "
+                            + System.getProperty("line.separator") + "%s",
+                    asString(inputAction), _endpoint, 200, asString(outputAction)));
+        } catch (WebApplicationException e) {
+            System.out.println(String.format(
+                    "PUT [%s] to [%s] failed, status code [%d]",
+                    asString(inputAction), _endpoint, e.getResponse().getStatus()));
+        } catch (ProcessingException e) {
+            System.out.println("Request processing exception");
+            e.printStackTrace();
+        }
+        return outputAction;
+    }
+
     public ResultBean getActionData(ActionBean inputAction) {
         ResultBean outputAction = null;
         try {

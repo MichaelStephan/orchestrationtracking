@@ -135,6 +135,22 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
             });
         });
 
+        rm.put("/workflows/:wid/actions/:aid/:timestamp/aestate", (req) -> {
+            handleMessage(req, OrchestrationTrackingServiceVerticle.UPDATE_ACTION_ERROR_STATE_ADDRESS, (address, body) -> {
+                body.putString("wid", checkNotNull(req.params().get("wid")));
+                body.putString("aid", checkNotNull(req.params().get("aid")));
+                body.putString("timestamp", checkNotNull(req.params().get("timestamp")));
+                container.logger().info("received PUT /workflows/:wid/actions/:aid/:timestamp/aestate " + body);
+                vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+                    Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
+                        req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end();
+                    }, (ignore) -> {
+                        req.response().setStatusCode(500).end();
+                    });
+                });
+            });
+        });
+
         rm.get("/workflows/:wid/actions/:aid/:timestamp/data", (req) -> {
             handleMessage(req, OrchestrationTrackingServiceVerticle.GET_ACTION_DATA_ADDRESS, (address, body) -> {
                 body.putString("wid", checkNotNull(req.params().get("wid")));
