@@ -35,7 +35,8 @@ public class CompensationExecutor extends AbstractExecutor implements ExecutionS
             compensation = new NOPComensationFunction();
         }
 
-        compensation.apply(action.restore(workflow).getResult());
+        // action.restore(workflow).getResult()
+        result.set(compensation.apply(Arguments.EMPTY_ARGUMENTS));
     }
 
     public ExecutionStrategy getActionErrorStrategy() {

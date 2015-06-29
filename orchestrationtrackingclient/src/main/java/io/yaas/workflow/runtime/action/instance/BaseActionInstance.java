@@ -1,11 +1,8 @@
 package io.yaas.workflow.runtime.action.instance;
 
-import io.yaas.workflow.action.Action;
 import io.yaas.workflow.runtime.ActionInstance;
 
 import java.util.*;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by D032705 on 29.06.2015.

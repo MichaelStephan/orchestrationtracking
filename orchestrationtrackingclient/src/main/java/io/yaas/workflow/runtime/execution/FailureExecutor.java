@@ -7,6 +7,7 @@ import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Created by i303874 on 6/29/15.
@@ -39,6 +40,6 @@ public class FailureExecutor implements ExecutionStrategy {
 
     @Override
     public Collection<ActionInstance> getNext(ActionInstance action) {
-        return null;
+        return Collections.emptyList();
     }
 }

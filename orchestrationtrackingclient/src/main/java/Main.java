@@ -32,8 +32,9 @@ public class Main {
         });
 
         getShoppingCart.setCompensationFunction((arguments) -> {
-            System.out.println("In getShoppingCart an issue is occured !!!" + arguments.getError().getMessage());
-            return null;
+            // arguments.getError().getMessage()
+            System.out.println("In getShoppingCart an issue is occured !!!");
+            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
         });
 
         // "calculate cart price"
@@ -48,8 +49,9 @@ public class Main {
         });
 
         calculateCartPrice.setCompensationFunction((arguments) -> {
-            System.out.println("in calculateCartPrice an issue is occured !!!" + arguments.getError().getMessage());
-            return null;
+            // arguments.getError().getMessage()
+            System.out.println("in calculateCartPrice an issue is occured !!!");
+            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
         });
         // "reserve stock"
 
@@ -59,8 +61,9 @@ public class Main {
         });
 
         reserveStock.setCompensationFunction((arguments) -> {
-            System.out.println("In reserveStock an issue is occured !!!" + arguments.getError().getMessage());
-            return null;
+            // arguments.getError().getMessage()
+            System.out.println("In reserveStock an issue is occured !!!");
+            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
         });
         // "capture payment"
 
@@ -71,8 +74,9 @@ public class Main {
         });
 
         capturePayment.setCompensationFunction((arguments) -> {
-            System.out.println("In capturePayment an issue is occured !!!" + arguments.getError().getMessage());
-            return null;
+            // arguments.getError().getMessage()
+            System.out.println("In capturePayment an issue is occured !!!");
+            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
         });
         // "create order"
 
@@ -85,8 +89,9 @@ public class Main {
         });
 
         createOrder.setCompensationFunction((arguments) -> {
-            System.out.println("In createOrder an issue is occured !!!" + arguments.getError().getMessage());
-            return null;
+            // arguments.getError().getMessage()
+            System.out.println("In createOrder an issue is occured !!!");
+            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
         });
 
         Workflow w = new Workflow("Shopping Cart Checkout", 1);

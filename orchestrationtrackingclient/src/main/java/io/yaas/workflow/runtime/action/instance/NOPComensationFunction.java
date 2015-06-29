@@ -10,6 +10,6 @@ import io.yaas.workflow.action.Arguments;
 public class NOPComensationFunction implements ActionFunction {
     @Override
     public ActionResult apply(Arguments arguments) {
-        return null;
+        return new ActionResult(Arguments.EMPTY_ARGUMENTS);
     }
 }
