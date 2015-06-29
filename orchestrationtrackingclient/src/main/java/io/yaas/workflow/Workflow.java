@@ -152,8 +152,4 @@ public class Workflow {
         }
         return instance;
     }
-
-    void setCompenstationStrategy(COMPENSTAION_STRATEGY compenstationStrategy) {
-
-    }
 }

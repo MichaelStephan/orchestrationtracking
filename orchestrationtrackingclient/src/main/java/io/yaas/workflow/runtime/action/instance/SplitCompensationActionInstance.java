@@ -3,10 +3,10 @@ package io.yaas.workflow.runtime.action.instance;
 import com.google.common.util.concurrent.SettableFuture;
 import io.yaas.workflow.action.ActionResult;
 import io.yaas.workflow.action.Arguments;
-import io.yaas.workflow.action.MergeAction;
+import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.tracker.model.ActionBean;
+import io.yaas.workflow.runtime.tracker.model.State;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,16 +14,19 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by i303874 on 4/29/15.
+ * Created by D032705 on 13.05.2015.
  */
-public class MergeActionInstance extends SimpleActionInstance {
-    private AtomicInteger _count;
-    private List<ActionResult> _results = new CopyOnWriteArrayList<>();
+public class SplitCompensationActionInstance extends SimpleActionInstance {
+
+    private ActionInstance actionInstance;
+    private AtomicInteger count;
+    private List<ActionResult> results = new CopyOnWriteArrayList<>();
     private Object lastCreatedTimestampLock = new Object();
 
-    public MergeActionInstance(String id, MergeAction action, int count) {
-        super(id, action);
-        this._count = new AtomicInteger(count);
+    public SplitCompensationActionInstance(ActionInstance actionInstance, int count) {
+        super("compensation", actionInstance.getAction());
+        this.actionInstance = actionInstance;
+        this.count = new AtomicInteger(count);
     }
 
     @Override
@@ -35,24 +38,30 @@ public class MergeActionInstance extends SimpleActionInstance {
         }
     }
 
+    public ActionInstance getActionInstance() {
+        return actionInstance;
+    }
+
+    @Override
+    public void succeed(WorkflowInstance workflowInstance, ActionResult result) {
+        ActionBean actionBean = new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId(), lastCreatedTimestamp);
+        actionBean.astate = State.SUCCEEDED;
+        workflowInstance.getTrackingClient().updateAction(actionBean);
+    }
+
     @Override
     public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) {
         new Thread(() -> {
-            _results.add(new ActionResult(arguments));
-            if (_count.decrementAndGet() == 0) {
+            results.add(new ActionResult(arguments));
+            if (count.decrementAndGet() == 0) {
                 // TODO make nicer !!!
                 Map<String, Object> consolidatedArguments = new HashMap<>();
-                _results.stream().forEach((argument) -> {
+                results.stream().forEach((argument) -> {
                     consolidatedArguments.putAll(argument.getResult());
                 });
 
                 result.set(new ActionResult(new Arguments(consolidatedArguments)));
             }
         }).start();
-    }
-
-    @Override
-    public ActionResult restore(WorkflowInstance workflowInstance) {
-        return new ActionResult(new Arguments(Collections.emptyMap()));
     }
 }

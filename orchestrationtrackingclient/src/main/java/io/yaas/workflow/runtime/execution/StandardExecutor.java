@@ -24,22 +24,7 @@ public class StandardExecutor extends AbstractExecutor {
     public ExecutionStrategy getActionErrorStrategy() {
         return new CompensationExecutor();
     }
-
-    @Override
-    public void start(WorkflowInstance workflow, ActionInstance action) {
-        action.start(workflow);
-    }
-
-    @Override
-    public void success(WorkflowInstance workflow, ActionResult result, ActionInstance action) {
-        action.succeed(workflow, result);
-    }
-
-    @Override
-    public void error(WorkflowInstance workflow, ActionInstance action, Arguments arguments, Throwable cause) {
-        action.error(workflow, cause);
-    }
-
+    
     @Override
     public void execute(WorkflowInstance workflow, ActionInstance action, Arguments arguments, SettableFuture<ActionResult> result) {
         action.execute(workflow, arguments, result);

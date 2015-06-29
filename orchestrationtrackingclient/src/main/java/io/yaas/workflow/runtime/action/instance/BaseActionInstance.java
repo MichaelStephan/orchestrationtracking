@@ -12,6 +12,12 @@ public abstract class BaseActionInstance implements ActionInstance {
     protected String id;
     protected Set<ActionInstance> predecessors = new HashSet<>();
     protected Set<ActionInstance> successors = new HashSet<>();
+    protected ActionInstance compensationActionInstance;
+
+    @Override
+    public ActionInstance getCompensationActionInstance() {
+        return compensationActionInstance;
+    }
 
     public void addSuccessor(ActionInstance successor) {
         _addSuccessor(successor);
@@ -70,6 +76,7 @@ public abstract class BaseActionInstance implements ActionInstance {
         }
         successor.addSuccessor(this);
     }
+
     @Override
     public Collection<ActionInstance> getSuccessors() {
         return successors;
@@ -82,11 +89,6 @@ public abstract class BaseActionInstance implements ActionInstance {
 
     @Override
     public String getVersion() {
-        return null;
-    }
-
-    @Override
-    public ActionInstance copy(ActionInstance source) {
         return null;
     }
 

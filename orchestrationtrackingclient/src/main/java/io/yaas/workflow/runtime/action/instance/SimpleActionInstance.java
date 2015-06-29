@@ -9,10 +9,7 @@ import io.yaas.workflow.runtime.tracker.model.ActionBean;
 import io.yaas.workflow.runtime.tracker.model.ResultBean;
 import io.yaas.workflow.runtime.tracker.model.State;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -22,13 +19,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class SimpleActionInstance extends BaseActionInstance implements ActionInstance {
     private Action action;
 
-    private CompensationActionInstance compensationActionInstance;
-
     protected String lastCreatedTimestamp;
 
     public SimpleActionInstance(String id, Action action) {
         this.id = checkNotNull(id);
         this.action = checkNotNull(action);
+
+        if (!(this instanceof SimpleCompensationActionInstance)) {
+            this.compensationActionInstance = new SimpleCompensationActionInstance(this);
+        }
     }
 
     public String getId() {
@@ -77,7 +76,7 @@ public class SimpleActionInstance extends BaseActionInstance implements ActionIn
     }
 
     public String toString() {
-        return action.toString();
+        return getId();
     }
 
     @Override
@@ -87,14 +86,6 @@ public class SimpleActionInstance extends BaseActionInstance implements ActionIn
 
     public Iterator<ActionInstance> iterator() {
         return getSuccessors().iterator();
-    }
-
-    public CompensationActionInstance getCompensationActionInstance() {
-        return compensationActionInstance;
-    }
-
-    public void setCompensationActionInstance(CompensationActionInstance compensationActionInstance) {
-        this.compensationActionInstance = compensationActionInstance;
     }
 
     @Override
@@ -107,7 +98,5 @@ public class SimpleActionInstance extends BaseActionInstance implements ActionIn
         ResultBean result = workflowInstance.getTrackingClient().getActionData(bean);
         return new ActionResult(new Arguments(result.result));
     }
-
-
 }
 

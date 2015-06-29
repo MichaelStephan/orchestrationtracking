@@ -7,7 +7,7 @@ import io.yaas.workflow.action.Arguments;
 /**
  * Created by i303874 on 6/29/15.
  */
-public class NOPComensationFunction implements ActionFunction {
+public class NOPCompensationFunction implements ActionFunction {
     @Override
     public ActionResult apply(Arguments arguments) {
         return new ActionResult(Arguments.EMPTY_ARGUMENTS);

@@ -1,6 +1,7 @@
 package io.yaas.workflow.action;
 
 import io.yaas.workflow.Workflow;
+import io.yaas.workflow.runtime.action.instance.NOPCompensationFunction;
 import io.yaas.workflow.runtime.traversal.ForwardIterator;
 
 import java.util.*;
@@ -16,7 +17,7 @@ abstract class BaseAction implements Action {
     protected Workflow workflow;
     protected ActionFunction actionFunction;
     //    protected ActionErrorHandler _onError;
-    protected ActionFunction compensationFunction;
+    protected ActionFunction compensationFunction = new NOPCompensationFunction();
 
     protected Set<Action> successors = new TreeSet<>((o1, o2) -> {
         if (o1.getId() == null) return -1;
