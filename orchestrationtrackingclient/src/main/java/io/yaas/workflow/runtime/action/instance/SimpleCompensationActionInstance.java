@@ -15,12 +15,16 @@ public class SimpleCompensationActionInstance extends SimpleActionInstance {
     private ActionInstance actionInstance;
 
     public SimpleCompensationActionInstance(ActionInstance actionInstance) {
-        super(actionInstance.getId() + "_compensation", actionInstance.getAction());
+        super("compensation", actionInstance.getAction());
         this.actionInstance = actionInstance;
     }
 
     public ActionInstance getActionInstance() {
         return actionInstance;
+    }
+
+    public String getId() {
+        return actionInstance.getId() + "_compensation";
     }
 
     @Override

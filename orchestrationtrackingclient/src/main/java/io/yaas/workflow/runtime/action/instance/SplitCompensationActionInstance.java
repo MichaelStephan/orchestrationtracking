@@ -29,6 +29,10 @@ public class SplitCompensationActionInstance extends SimpleActionInstance {
         this.count = new AtomicInteger(count);
     }
 
+    public String getId() {
+        return actionInstance.getId() + "_compensation";
+    }
+
     @Override
     public void start(WorkflowInstance workflowInstance) {
         synchronized (lastCreatedTimestampLock) {
