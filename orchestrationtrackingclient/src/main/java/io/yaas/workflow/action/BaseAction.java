@@ -15,7 +15,7 @@ abstract class BaseAction implements Action {
     protected String version;
     protected Workflow workflow;
     protected ActionFunction actionFunction;
-//    protected ActionErrorHandler _onError;
+    //    protected ActionErrorHandler _onError;
     protected ActionFunction compensationFunction;
 
     protected Set<Action> successors = new TreeSet<>((o1, o2) -> {
@@ -97,23 +97,23 @@ abstract class BaseAction implements Action {
     @Override
     public void insertAfter(Action predecessor) {
         List<Action> successors = new ArrayList<Action>();
-        successors.addAll(predecessor.getSuccessors()); // clone, otherwise concurrent modification
+        successors.addAll(getSuccessors()); // clone, otherwise concurrent modification
         for (Action a : successors) {
-            a.addPredecessor(this);
-            a.removePredecessor(predecessor);
+            a.addPredecessor(predecessor);
+            a.removePredecessor(this);
         }
-        predecessor.addSuccessor(this);
+        predecessor.addPredecessor(this);
     }
 
     @Override
     public void insertBefore(Action successor) {
         List<Action> predecessors = new ArrayList<Action>();
-        predecessors.addAll(successor.getPredecessors());  // clone, otherwise concurrent modification
+        predecessors.addAll(getPredecessors());  // clone, otherwise concurrent modification
         for (Action a : predecessors) {
-            a.addSuccessor(this);
-            a.removeSuccessor(successor);
+            a.addSuccessor(successor);
+            a.removeSuccessor(this);
         }
-        successor.addPredecessor(this);
+        successor.addSuccessor(this);
     }
 
     private String getNameVersion() {
@@ -123,12 +123,6 @@ abstract class BaseAction implements Action {
             return getVersion();
         else
             return getName() + "." + getVersion();
-    }
-
-    public Action addAction(SimpleAction successor) {
-        addSuccessor(successor);
-        successor.workflow = this.workflow;
-        return successor;
     }
 
     @Override
@@ -152,7 +146,9 @@ abstract class BaseAction implements Action {
 
     @Override
     public Action addAction(Action successor) {
-        return null;
+        addSuccessor(successor);
+        successor.setWorkflow(this.workflow);
+        return successor;
     }
 
 //    public Action setErrorHandler(ActionErrorHandler onError) {
@@ -196,6 +192,7 @@ abstract class BaseAction implements Action {
             return action.getName();
         }).collect(Collectors.toList());
     }
+
     @Override
     public Iterator<Action> iterator() {
         return new ForwardIterator(this);

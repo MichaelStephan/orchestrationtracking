@@ -11,6 +11,7 @@ import java.util.Iterator;
 public interface Action {
 
     Workflow getWorkflow();
+    void setWorkflow(Workflow workflow);
 
     String getName();
     String getVersion();

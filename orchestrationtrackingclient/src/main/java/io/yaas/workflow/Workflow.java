@@ -11,7 +11,9 @@ public class Workflow {
 
     enum COMPENSTAION_STRATEGY {
         BACK, FAIL_FAST, CUSTOM
-    };
+    }
+
+    ;
 
     private String _name;
     private int _version;
@@ -96,18 +98,15 @@ public class Workflow {
         insertMergeActions(getStartAction());
         insertSplitActions(getStartAction());
         insertEndAction(getStartAction());
-        prepareCompensation(getStartAction());
         return getActionInstances();
-    }
-
-    private void prepareCompensation(Action startAction) {
-
     }
 
     private void insertEndAction(Action a) {
         for (Action successor : a.getSuccessors()) {
             insertEndAction(successor);
         }
+
+        //             a.insertAfter(new EndAction());
 
         if (a.getSuccessors().isEmpty() && !(a instanceof EndAction)) {
             a.addAction(new EndAction());
@@ -153,6 +152,7 @@ public class Workflow {
         }
         return instance;
     }
+
     void setCompenstationStrategy(COMPENSTAION_STRATEGY compenstationStrategy) {
 
     }

@@ -20,5 +20,7 @@ public interface ExecutionStrategy {
 
     void execute(WorkflowInstance workflow, ActionInstance action, Arguments arguments, SettableFuture<ActionResult> result);
 
+    ExecutionStrategy getActionErrorStrategy();
+
     Collection<ActionInstance> getNext(ActionInstance action);
 }

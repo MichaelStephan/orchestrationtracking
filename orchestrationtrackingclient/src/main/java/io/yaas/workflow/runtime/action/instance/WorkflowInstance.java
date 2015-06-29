@@ -1,6 +1,7 @@
 package io.yaas.workflow.runtime.action.instance;
 
 import io.yaas.workflow.Workflow;
+import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 import io.yaas.workflow.runtime.tracker.model.State;
 import io.yaas.workflow.runtime.tracker.model.WorkflowBean;
@@ -15,15 +16,29 @@ public class WorkflowInstance {
 
     private String id;
 
+    public ActionInstance getStart() {
+        return start;
+    }
+
+    public ActionInstance getEnd() {
+        return end;
+    }
+
+    private ActionInstance start;
+
+    private ActionInstance end;
+
     public WorkflowTrackingClient getTrackingClient() {
         return client;
     }
 
     private WorkflowTrackingClient client;
 
-    public WorkflowInstance(Workflow workflow, WorkflowTrackingClient client) {
+    public WorkflowInstance(Workflow workflow, WorkflowTrackingClient client, ActionInstance start, ActionInstance end) {
         this.workflow = checkNotNull(workflow);
         this.client = checkNotNull(client);
+        this.start = checkNotNull(start);
+        this.end = checkNotNull(end);
     }
 
     public Workflow getWorkflow() {

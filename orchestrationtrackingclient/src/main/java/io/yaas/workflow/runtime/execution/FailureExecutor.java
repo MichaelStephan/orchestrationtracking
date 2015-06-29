@@ -5,48 +5,40 @@ import io.yaas.workflow.action.ActionResult;
 import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
-import io.yaas.workflow.runtime.traversal.ForwardTraversal;
-import io.yaas.workflow.runtime.traversal.TraversalStrategy;
+
+import java.util.Collection;
 
 /**
- * Created by D032705 on 30.04.2015.
+ * Created by i303874 on 6/29/15.
  */
-public class StandardExecutor extends AbstractExecutor {
-    protected static ExecutionStrategy INSTANCE;
-
-    public static ExecutionStrategy getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new StandardExecutor();
-        }
-        return INSTANCE;
-    }
-
-    public ExecutionStrategy getActionErrorStrategy() {
-        return new CompensationExecutor();
-    }
-
+public class FailureExecutor implements ExecutionStrategy {
     @Override
     public void start(WorkflowInstance workflow, ActionInstance action) {
-        action.start(workflow);
+
     }
 
     @Override
     public void success(WorkflowInstance workflow, ActionResult result, ActionInstance action) {
-        action.succeed(workflow, result);
+
     }
 
     @Override
     public void error(WorkflowInstance workflow, ActionInstance action, Arguments arguments, Throwable cause) {
-        action.error(workflow, cause);
+
     }
 
     @Override
     public void execute(WorkflowInstance workflow, ActionInstance action, Arguments arguments, SettableFuture<ActionResult> result) {
-        action.execute(workflow, arguments, result);
+
     }
 
     @Override
-    public TraversalStrategy getTraversalStrategy(ActionInstance action) {
-        return ForwardTraversal.getInstance();
+    public ExecutionStrategy getActionErrorStrategy() {
+        return null;
+    }
+
+    @Override
+    public Collection<ActionInstance> getNext(ActionInstance action) {
+        return null;
     }
 }

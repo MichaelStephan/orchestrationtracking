@@ -30,6 +30,7 @@ public class Main {
                             .build())
                     .build()));
         });
+
         getShoppingCart.setCompensationFunction((arguments) -> {
             System.out.println("In getShoppingCart an issue is occured !!!" + arguments.getError().getMessage());
             return null;
