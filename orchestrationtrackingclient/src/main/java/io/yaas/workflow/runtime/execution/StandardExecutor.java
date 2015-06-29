@@ -1,8 +1,8 @@
 package io.yaas.workflow.runtime.execution;
 
 import com.google.common.util.concurrent.SettableFuture;
-import io.yaas.workflow.ActionResult;
-import io.yaas.workflow.Arguments;
+import io.yaas.workflow.action.ActionResult;
+import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 import io.yaas.workflow.runtime.traversal.ForwardTraversal;
@@ -23,22 +23,22 @@ public class StandardExecutor extends AbstractExecutor {
 
     @Override
     public void start(WorkflowInstance workflow, ActionInstance action) {
-        action.start(workflow, workflow.getTrackingClient());
+        action.start(workflow);
     }
 
     @Override
     public void success(WorkflowInstance workflow, ActionResult result, ActionInstance action) {
-        action.succeed(workflow, result, workflow.getTrackingClient());
+        action.succeed(workflow, result);
     }
 
     @Override
     public void error(WorkflowInstance workflow, ActionInstance action, Arguments arguments, Throwable cause) {
-        action.error(workflow, workflow.getTrackingClient(), cause);
+        action.error(workflow, cause);
     }
 
     @Override
     public void execute(WorkflowInstance workflow, ActionInstance action, Arguments arguments, SettableFuture<ActionResult> result) {
-        action.execute(arguments, result);
+        action.execute(workflow, arguments, result);
     }
 
     @Override

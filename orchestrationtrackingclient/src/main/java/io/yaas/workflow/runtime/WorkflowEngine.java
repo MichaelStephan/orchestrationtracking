@@ -3,12 +3,12 @@ package io.yaas.workflow.runtime;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
-import io.yaas.workflow.ActionResult;
-import io.yaas.workflow.Arguments;
 import io.yaas.workflow.Workflow;
+import io.yaas.workflow.action.ActionResult;
+import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 import io.yaas.workflow.runtime.execution.ExecutionStrategy;
-import io.yaas.workflow.runtime.execution.ErrorExecutor;
+import io.yaas.workflow.runtime.execution.CompensationExecutor;
 import io.yaas.workflow.runtime.execution.StandardExecutor;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 
@@ -50,11 +50,10 @@ public class WorkflowEngine {
                 executor.error(workflow, action, arguments, cause);
                 // throw new Exception(cause);
                 arguments.addError(cause);
-                runAction(new ErrorExecutor(), workflow, action, arguments);
+                runAction(new CompensationExecutor(), workflow, action, arguments);
             }
         });
         executor.start(workflow, action);
-
         executor.execute(workflow, action, arguments, future);
     }
 }

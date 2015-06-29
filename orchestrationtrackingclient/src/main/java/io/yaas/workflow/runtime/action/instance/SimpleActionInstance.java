@@ -1,17 +1,17 @@
 package io.yaas.workflow.runtime.action.instance;
 
 import com.google.common.util.concurrent.SettableFuture;
-import io.yaas.workflow.Action;
-import io.yaas.workflow.ActionResult;
-import io.yaas.workflow.Arguments;
+import io.yaas.workflow.action.Action;
+import io.yaas.workflow.action.ActionResult;
+import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.runtime.ActionInstance;
-import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 import io.yaas.workflow.runtime.tracker.model.ActionBean;
 import io.yaas.workflow.runtime.tracker.model.ResultBean;
 import io.yaas.workflow.runtime.tracker.model.State;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -19,14 +19,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Created by i303874 on 4/29/15.
  */
-public class SimpleActionInstance implements ActionInstance {
+public class SimpleActionInstance extends BaseActionInstance implements ActionInstance {
     private Action action;
 
-    private Set<ActionInstance> successors = new HashSet<>();
-
-    private Set<ActionInstance> predecessors = new HashSet<>();
-
-    private String id;
+    private CompensationActionInstance compensationActionInstance;
 
     protected String lastCreatedTimestamp;
 
@@ -50,44 +46,30 @@ public class SimpleActionInstance implements ActionInstance {
     }
 
     @Override
-    public void start(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
-        this.lastCreatedTimestamp = client.createAction(new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId())).timestamp;
+    public void start(WorkflowInstance workflowInstance) {
+        this.lastCreatedTimestamp = workflowInstance.getTrackingClient().createAction(new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId())).timestamp;
     }
 
     @Override
-    public void succeed(WorkflowInstance workflowInstance, ActionResult result, WorkflowTrackingClient client) {
+    public void succeed(WorkflowInstance workflowInstance, ActionResult result) {
         ActionBean actionBean = new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId(), lastCreatedTimestamp);
         actionBean.astate = State.SUCCEEDED;
         actionBean.data = result.getResult();
-        client.updateAction(actionBean);
+        workflowInstance.getTrackingClient().updateAction(actionBean);
     }
 
     @Override
-    public void error(WorkflowInstance workflowInstance, WorkflowTrackingClient client, Throwable cause) {
+    public void error(WorkflowInstance workflowInstance, Throwable cause) {
         ActionBean actionBean = new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId(), lastCreatedTimestamp);
         actionBean.astate = State.FAILED;
-        client.updateAction(actionBean);
+        workflowInstance.getTrackingClient().updateAction(actionBean);
     }
 
     @Override
-    public void errorHandlerSuccess(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
-        ActionBean actionBean = new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId(), lastCreatedTimestamp);
-        actionBean.aestate = State.SUCCEEDED;
-        client.updateActionErrorState(actionBean);
-    }
-
-    @Override
-    public void errorHandlerError(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
-        ActionBean actionBean = new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId(), lastCreatedTimestamp);
-        actionBean.aestate = State.FAILED;
-        client.updateActionErrorState(actionBean);
-    }
-
-    @Override
-    public void execute(Arguments arguments, SettableFuture<ActionResult> result) {
+    public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) {
         new Thread(() -> {
             try {
-                result.set(action.getFunction().apply(arguments));
+                result.set(action.getActionFunction().apply(arguments));
             } catch (Exception e) {
                 result.setException(e);
             }
@@ -103,23 +85,16 @@ public class SimpleActionInstance implements ActionInstance {
         return action;
     }
 
-    public void addSuccessor(ActionInstance action) {
-        successors.add(checkNotNull(action));
+    public Iterator<ActionInstance> iterator() {
+        return getSuccessors().iterator();
     }
 
-    @Override
-    public void addPredecessor(ActionInstance action) {
-        predecessors.add(checkNotNull(action));
+    public CompensationActionInstance getCompensationActionInstance() {
+        return compensationActionInstance;
     }
 
-    @Override
-    public Collection<ActionInstance> getSuccessors() {
-        return this.successors;
-    }
-
-    @Override
-    public Collection<ActionInstance> getPredecessors() {
-        return this.predecessors;
+    public void setCompensationActionInstance(CompensationActionInstance compensationActionInstance) {
+        this.compensationActionInstance = compensationActionInstance;
     }
 
     @Override
@@ -132,4 +107,7 @@ public class SimpleActionInstance implements ActionInstance {
         ResultBean result = workflowInstance.getTrackingClient().getActionData(bean);
         return new ActionResult(new Arguments(result.result));
     }
+
+
 }
+

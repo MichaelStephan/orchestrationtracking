@@ -1,9 +1,9 @@
 package io.yaas.workflow.runtime.action.instance;
 
 import com.google.common.util.concurrent.SettableFuture;
-import io.yaas.workflow.Action;
-import io.yaas.workflow.ActionResult;
-import io.yaas.workflow.Arguments;
+import io.yaas.workflow.action.Action;
+import io.yaas.workflow.action.ActionResult;
+import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 
 import java.util.Collections;
@@ -17,13 +17,13 @@ public class EndActionInstance extends SimpleActionInstance {
     }
 
     @Override
-    public void succeed(WorkflowInstance workflowInstance, ActionResult result, WorkflowTrackingClient client) {
-        super.succeed(workflowInstance, result, client);
+    public void succeed(WorkflowInstance workflowInstance, ActionResult result) {
+        super.succeed(workflowInstance, result);
         workflowInstance.succeed();
     }
 
     @Override
-    public void execute(Arguments arguments, SettableFuture<ActionResult> result) {
+    public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) {
         result.set(new ActionResult(arguments));
     }
 

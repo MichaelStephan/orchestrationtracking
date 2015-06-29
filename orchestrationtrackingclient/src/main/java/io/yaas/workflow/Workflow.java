@@ -1,5 +1,6 @@
 package io.yaas.workflow;
 
+import io.yaas.workflow.action.*;
 import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.action.instance.*;
 import io.yaas.workflow.runtime.WorkflowEngine;
@@ -8,13 +9,17 @@ import java.util.*;
 
 public class Workflow {
 
+    enum COMPENSTAION_STRATEGY {
+        BACK, FAIL_FAST, CUSTOM
+    };
+
     private String _name;
     private int _version;
 
-    private Action _startAction;
+    private SimpleAction _startAction;
 
-    private ActionErrorHandler _onFailureHandler;
-    private ActionErrorHandler _onUnknownHandler;
+    private ActionFunction _onFailureHandler;
+//    private ActionFunction _onUnknownHandler;
 
     public Workflow(String name, int version) {
         _name = name;
@@ -33,22 +38,17 @@ public class Workflow {
         return ""; // TODO
     }
 
-    public Workflow setErrorHandler(ActionErrorHandler onFailure, ActionErrorHandler onUnknown) {
+    public Workflow setErrorHandler(ActionFunction onFailure) {
         _onFailureHandler = onFailure;
-        _onUnknownHandler = onUnknown;
 
         return this;
     }
 
-    public ActionErrorHandler getOnFailure() {
+    public ActionFunction getOnFailure() {
         return _onFailureHandler;
     }
 
-    public ActionErrorHandler getOnUnknown() {
-        return _onUnknownHandler;
-    }
-
-    public Action getStartAction() {
+    public SimpleAction getStartAction() {
         if (_startAction == null) {
             _startAction = new StartAction();
         }
@@ -67,6 +67,7 @@ public class Workflow {
     private ActionInstance transform(Action action, int nextId) {
         String id = Integer.toString(nextId);
 
+        // Build ActionInstance graph
         if (action instanceof MergeAction) {
             return new MergeActionInstance(id, MergeAction.class.cast(action), action.getPredecessors().size());
         } else if (action instanceof SplitAction) {
@@ -78,6 +79,9 @@ public class Workflow {
         } else {
             return new SimpleActionInstance(id, action);
         }
+        // Build CompensationActionInstance graph
+
+
     }
 
     public void execute(WorkflowEngine engine, Arguments arguments) {
@@ -92,7 +96,12 @@ public class Workflow {
         insertMergeActions(getStartAction());
         insertSplitActions(getStartAction());
         insertEndAction(getStartAction());
+        prepareCompensation(getStartAction());
         return getActionInstances();
+    }
+
+    private void prepareCompensation(Action startAction) {
+
     }
 
     private void insertEndAction(Action a) {
@@ -143,5 +152,8 @@ public class Workflow {
             }
         }
         return instance;
+    }
+    void setCompenstationStrategy(COMPENSTAION_STRATEGY compenstationStrategy) {
+
     }
 }

@@ -1,4 +1,4 @@
-package io.yaas.workflow;
+package io.yaas.workflow.action;
 
 import java.util.*;
 

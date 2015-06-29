@@ -1,10 +1,9 @@
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import io.yaas.workflow.Action;
-import io.yaas.workflow.ActionResult;
-import io.yaas.workflow.Arguments;
-import io.yaas.workflow.Workflow;
-import io.yaas.workflow.errorhandler.UndoActionErrorHandler;
+import io.yaas.workflow.*;
+import io.yaas.workflow.action.ActionResult;
+import io.yaas.workflow.action.Arguments;
+import io.yaas.workflow.action.SimpleAction;
 import io.yaas.workflow.runtime.WorkflowEngine;
 
 import java.math.BigDecimal;
@@ -20,7 +19,7 @@ public class Main {
 
         // takes cartId, returns cart (productId: quantity)
 
-        Action getShoppingCart = new Action("Get Shopping Cart", "1.0", (arguments) -> {
+        SimpleAction getShoppingCart = new SimpleAction("Get Shopping Cart", "1.0", (arguments) -> {
             String cartId = Preconditions.checkNotNull(String.class.cast(arguments.get("cartid")));
 
             return new ActionResult(new Arguments(new ImmutableMap.Builder<String, Object>()
@@ -31,14 +30,14 @@ public class Main {
                             .build())
                     .build()));
         });
-        getShoppingCart.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
-            System.out.println("getShoppingCart an issue occured !!!" + arguments);
+        getShoppingCart.setCompensationFunction((arguments) -> {
+            System.out.println("In getShoppingCart an issue is occured !!!" + arguments.getError().getMessage());
             return null;
-        }));
+        });
 
         // "calculate cart price"
 
-        Action calculateCartPrice = new Action("Calculate Cart Price", "1.0", (arguments) -> {
+        SimpleAction calculateCartPrice = new SimpleAction("Calculate Cart Price", "1.0", (arguments) -> {
             String cartId = Preconditions.checkNotNull(String.class.cast(arguments.get("cartid")));
 
             return new ActionResult(new Arguments(new ImmutableMap.Builder<String, Object>()
@@ -46,48 +45,48 @@ public class Main {
                     .put("cartprice", BigDecimal.valueOf(100.0))
                     .build()));
         });
-//        calculateCartPrice.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
-//            System.out.println("calculateCartPrice an issue occured !!!" + arguments);
-////            throw new RuntimeException("crash!!");
-//            return null;
-//        }));
 
+        calculateCartPrice.setCompensationFunction((arguments) -> {
+            System.out.println("in calculateCartPrice an issue is occured !!!" + arguments.getError().getMessage());
+            return null;
+        });
         // "reserve stock"
 
-        Action reserveStock = new Action("Reserve Stock", "1.0", (arguments) -> {
+        SimpleAction reserveStock = new SimpleAction("Reserve Stock", "1.0", (arguments) -> {
             Set<Map.Entry<String, String>> cartEntries = Preconditions.checkNotNull(Map.class.cast(arguments.get("cart"))).entrySet();
             return new ActionResult(arguments);
         });
-//        reserveStock.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
-//            System.out.println("reserveStock an issue occured !!!" + arguments);
-//            return null;
-//        }));
 
+        reserveStock.setCompensationFunction((arguments) -> {
+            System.out.println("In reserveStock an issue is occured !!!" + arguments.getError().getMessage());
+            return null;
+        });
         // "capture payment"
 
-        Action capturePayment = new Action("Capture Payment", "1.0", (arguments) -> {
+        SimpleAction capturePayment = new SimpleAction("Capture Payment", "1.0", (arguments) -> {
             BigDecimal cartPrice = Preconditions.checkNotNull(BigDecimal.class.cast(arguments.get("cartprice")));
 
             return new ActionResult(arguments);
         });
-//        capturePayment.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
-//            System.out.println("capturePayment an issue occured !!!" + arguments);
-//            return null;
-//        }));
 
+        capturePayment.setCompensationFunction((arguments) -> {
+            System.out.println("In capturePayment an issue is occured !!!" + arguments.getError().getMessage());
+            return null;
+        });
         // "create order"
 
-        Action createOrder = new Action("Create Order", "1.0", (arguments) -> {
+        SimpleAction createOrder = new SimpleAction("Create Order", "1.0", (arguments) -> {
             String cartId = Preconditions.checkNotNull(String.class.cast(arguments.get("cartid")));
 
             throw new RuntimeException("bum");
 
 //            return new ActionResult(arguments);
         });
-        createOrder.setErrorHandler(new UndoActionErrorHandler((cause, arguments) -> {
-            System.out.println("createOrder an issue occured !!!" + arguments);
+
+        createOrder.setCompensationFunction((arguments) -> {
+            System.out.println("In createOrder an issue is occured !!!" + arguments.getError().getMessage());
             return null;
-        }));
+        });
 
         Workflow w = new Workflow("Shopping Cart Checkout", 1);
         w.getStartAction().addAction(getShoppingCart);

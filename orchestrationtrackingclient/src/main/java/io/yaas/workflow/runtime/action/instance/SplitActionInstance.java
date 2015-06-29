@@ -1,9 +1,9 @@
 package io.yaas.workflow.runtime.action.instance;
 
 import com.google.common.util.concurrent.SettableFuture;
-import io.yaas.workflow.ActionResult;
-import io.yaas.workflow.Arguments;
-import io.yaas.workflow.SplitAction;
+import io.yaas.workflow.action.ActionResult;
+import io.yaas.workflow.action.Arguments;
+import io.yaas.workflow.action.SplitAction;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +23,7 @@ public class SplitActionInstance extends SimpleActionInstance {
     }
 
     @Override
-    public void execute(Arguments arguments, SettableFuture<ActionResult> result) {
+    public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) {
 //        new Thread(() -> {
 //            _results.add(new ActionResult(arguments));
 //            if (_count.decrementAndGet() == 0) {

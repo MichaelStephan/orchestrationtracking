@@ -1,9 +1,9 @@
 package io.yaas.workflow.runtime.action.instance;
 
 import com.google.common.util.concurrent.SettableFuture;
-import io.yaas.workflow.ActionResult;
-import io.yaas.workflow.Arguments;
-import io.yaas.workflow.MergeAction;
+import io.yaas.workflow.action.ActionResult;
+import io.yaas.workflow.action.Arguments;
+import io.yaas.workflow.action.MergeAction;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 import io.yaas.workflow.runtime.tracker.model.ActionBean;
 
@@ -28,16 +28,16 @@ public class MergeActionInstance extends SimpleActionInstance {
     }
 
     @Override
-    public void start(WorkflowInstance workflowInstance, WorkflowTrackingClient client) {
+    public void start(WorkflowInstance workflowInstance) {
         synchronized (lastCreatedTimestampLock) {
             if (this.lastCreatedTimestamp == null) {
-                this.lastCreatedTimestamp = client.createAction(new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId())).timestamp;
+                this.lastCreatedTimestamp = workflowInstance.getTrackingClient().createAction(new ActionBean(workflowInstance.getId(), getName(), getVersion(), getId())).timestamp;
             }
         }
     }
 
     @Override
-    public void execute(Arguments arguments, SettableFuture<ActionResult> result) {
+    public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) {
         new Thread(() -> {
             _results.add(new ActionResult(arguments));
             if (_count.decrementAndGet() == 0) {
