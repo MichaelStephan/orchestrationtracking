@@ -105,13 +105,9 @@ public class SimpleActionInstance extends BaseActionInstance implements ActionIn
 
     @Override
     public ActionResult restore(WorkflowInstance workflowInstance) {
-        ActionBean bean = new ActionBean();
-        bean.wid = workflowInstance.getId();
-        bean.aid = getId();
-        bean.timestamp = lastCreatedTimestamp;
-
-        ResultBean result = workflowInstance.getTrackingClient().getActionData(bean);
-        return new ActionResult(new Arguments(result.result));
+        // TODO
+        ResultBean result = workflowInstance.getTrackingClient().getLastActionData(workflowInstance.getId(), getId());
+        return new ActionResult(new Arguments(result != null ? result.result : Arguments.EMPTY_ARGUMENTS));
     }
 }
 

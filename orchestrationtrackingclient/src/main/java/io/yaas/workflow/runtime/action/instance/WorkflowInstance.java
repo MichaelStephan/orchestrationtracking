@@ -41,6 +41,11 @@ public class WorkflowInstance {
         this.end = checkNotNull(end);
     }
 
+    public WorkflowInstance(Workflow workflow, WorkflowTrackingClient client, ActionInstance start, ActionInstance end, String wid) {
+        this(workflow, client, start, end);
+        this.id = checkNotNull(wid);
+    }
+
     public Workflow getWorkflow() {
         return workflow;
     }

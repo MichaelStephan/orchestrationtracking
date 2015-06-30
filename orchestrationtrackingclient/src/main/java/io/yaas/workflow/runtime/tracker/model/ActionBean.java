@@ -12,7 +12,6 @@ public class ActionBean {
     public String name;
     public String version;
     public State astate;
-    public State aestate;
     public Map<String, Object> data;
 
     public ActionBean() {

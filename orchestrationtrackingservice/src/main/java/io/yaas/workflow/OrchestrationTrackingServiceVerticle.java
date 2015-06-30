@@ -27,7 +27,6 @@ import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -39,8 +38,6 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
 
     public final static String LIST_WORKFLOWS_ADDRESS = "workflows.list";
 
-    public final static String GET_WORKFLOW_ADDRESS = "workflow.info";
-
     public final static String CREATE_AND_START_WORKFLOW_ADDRESS = "workflow.create_and_start";
 
     public final static String UPDATE_WORKFLOW_ADDRESS = "workflow.update";
@@ -49,15 +46,13 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
 
     public final static String UPDATE_ACTION_ADDRESS = "action.update";
 
-    public final static String UPDATE_ACTION_ERROR_STATE_ADDRESS = "action.error.state.update";
+    public final static String GET_LAST_ACTION_DATA_ADDRESS = "action.last.data_get";
 
-    public final static String GET_ACTION_DATA_ADDRESS = "action.data_get";
+    public final static String GET_LAST_ACTION_ADDRESS = "action.last.get";
 
     private enum WorkflowState {STARTED, SUCCEEDED, COMPENSATED, FAILED}
 
     private enum ActionState {STARTED, SUCCEEDED, FAILED}
-
-    private enum ActionErrorState {STARTED, SUCCEEDED, FAILED}
 
     private void registerCassandraStructures() {
         Future<Void> createKeyspace = new DefaultFutureResult<>();
@@ -80,7 +75,7 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
                 });
             });
 
-            vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "raw").putString("statement", "CREATE TABLE yaas.actions(wid uuid, timestamp timeuuid, aid text, astate text, aestate text, data text, PRIMARY KEY(wid, aid, timestamp))"), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
+            vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "raw").putString("statement", "CREATE TABLE yaas.actions(wid uuid, timestamp timeuuid, aid text, astate text, data text, PRIMARY KEY(wid, aid, timestamp)) WITH CLUSTERING ORDER BY (aid DESC, timestamp ASC)"), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                 Common.checkResponse(vertx, container, asyncResult, (ignore1) -> {
                     container.logger().info("CREATE TABLE yaas.actions successful");
                 }, (ignore1) -> {
@@ -128,17 +123,17 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
             });
         });
 
-        vertx.eventBus().registerHandler(UPDATE_ACTION_ERROR_STATE_ADDRESS, (Message<JsonObject> message) -> {
+        vertx.eventBus().registerHandler(GET_LAST_ACTION_DATA_ADDRESS, (Message<JsonObject> message) -> {
             Common.execute(container, message, (result) -> {
-                container.logger().info("Received UPDATE_ACTION_ERROR_STATE_ADDRESS message: " + checkNotNull(message).body().toString());
-                updateActionErrorState(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("aid")), checkNotNull(message.body().getString("timestamp")), ActionErrorState.valueOf(checkNotNull(message.body().getString("aestate")).toUpperCase()));
+                container.logger().info("Received GET_LAST_ACTION_DATA_ADDRESS message: " + checkNotNull(message).body().toString());
+                getLastActionData(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("aid")));
             });
         });
 
-        vertx.eventBus().registerHandler(GET_ACTION_DATA_ADDRESS, (Message<JsonObject> message) -> {
+        vertx.eventBus().registerHandler(GET_LAST_ACTION_ADDRESS, (Message<JsonObject> message) -> {
             Common.execute(container, message, (result) -> {
-                container.logger().info("Received GET_ACTION_DATA_ADDRESS message: " + checkNotNull(message).body().toString());
-                getActionData(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("aid")), checkNotNull(message.body().getString("timestamp")));
+                container.logger().info("Received GET_LAST_ACTION_ADDRESS message: " + checkNotNull(message).body().toString());
+                getLastAction(result, checkNotNull(message.body().getString("wid")), checkNotNull(message.body().getString("aid")));
             });
         });
 
@@ -219,32 +214,39 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
         });
     }
 
-    private void updateActionErrorState(Future<Void> result, String wid, String aid, String timestamp, ActionErrorState state) {
-        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "UPDATE yaas.actions SET aestate=? WHERE wid=? AND aid=? AND timestamp=?").putArray("values", new JsonArray().addArray(new JsonArray().addString(state.name().toLowerCase()).addString(wid).addString(aid).addString(timestamp))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
-            Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
-                container.logger().info("UPDATE yaas.actions SET astate successful");
-                result.setResult(null);
+    private void getLastAction(Future<JsonObject> result, String wid, String aid) {
+        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "SELECT astate,timestamp from yaas.actions WHERE wid=? AND aid=? LIMIT 1").putArray("values", new JsonArray().addArray(new JsonArray().addString(wid).addString(aid))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonArray>> asyncResult) -> {
+            Common.checkArrayResponse(vertx, container, asyncResult, (ignore) -> {
+                container.logger().info("SELECT FROM yaas.actions successful");
+                JsonArray array = asyncResult.result().body().asArray();
+
+                if (array.size() == 1) {
+                    result.setResult(new JsonObject().putObject("result", array.get(0)));
+                } else {
+                    container.logger().warn("SELECT FROM yaas.actions failed, invalid number of results");
+                    result.setFailure(new IllegalStateException());
+                }
             }, (ignore) -> {
-                container.logger().info("UPDATE yaas.actions SET astate failed", asyncResult.cause());
+                container.logger().info("SELECT FROM yaas.actions failed", asyncResult.cause());
                 result.setFailure(asyncResult.cause());
             });
         });
     }
 
-    private void getActionData(Future<JsonObject> result, String wid, String aid, String timestamp) {
-        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "SELECT data from yaas.actions WHERE wid=? AND aid=? AND timestamp=?").putArray("values", new JsonArray().addArray(new JsonArray().addString(wid).addString(aid).addString(timestamp))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonArray>> asyncResult) -> {
+    private void getLastActionData(Future<JsonObject> result, String wid, String aid) {
+        vertx.eventBus().sendWithTimeout("persistor", new JsonObject().putString("action", "prepared").putString("statement", "SELECT data from yaas.actions WHERE wid=? AND aid=? LIMIT 1").putArray("values", new JsonArray().addArray(new JsonArray().addString(wid).addString(aid))), Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonArray>> asyncResult) -> {
             Common.checkArrayResponse(vertx, container, asyncResult, (ignore) -> {
                 JsonArray array = new JsonArray();
                 for (Iterator<Object> i = asyncResult.result().body().iterator(); i.hasNext(); ) {
                     array.addObject(new JsonObject().putObject("data", new JsonObject(JsonObject.class.cast(i.next()).getString("data"))));
                 }
 
-                if (array.size() > 0) {
+                if (array.size() == 1) {
                     container.logger().info("SELECT data from yaas.actions ... successful", asyncResult.cause());
                     result.setResult(new JsonObject().putObject("result", array.get(0)));
                 } else {
                     container.logger().info("SELECT data from yaas.actions ... failed", asyncResult.cause());
-                    result.setFailure(new NoSuchElementException());
+                    result.setFailure(new IllegalStateException());
                 }
             }, (ignore) -> {
                 container.logger().info("SELECT data from yaas.actions ... failed", asyncResult.cause());

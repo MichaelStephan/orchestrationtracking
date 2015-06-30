@@ -78,10 +78,10 @@ public class Main {
 
         capturePayment.setCompensationFunction((arguments) -> {
             // arguments.getError().getMessage()
-            throw new RuntimeException("bum2");
+//            throw new RuntimeException("bum2");
 
-//            System.out.println("In capturePayment an issue is occured !!!");
-//            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
+            System.out.println("In capturePayment an issue is occured !!!");
+            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
         });
         // "create order"
 
@@ -105,12 +105,13 @@ public class Main {
         getShoppingCart.addAction(reserveStock);
         reserveStock.addAction(capturePayment);
         calculateCartPrice.addAction(capturePayment);
-
         capturePayment.addAction(createOrder);
 
-        w.execute(new WorkflowEngine(getTrackingClientEndpoint()), new Arguments(new ImmutableMap.Builder<String, Object>()
-                .put("cartid", "123")
-                .build()));
+//        w.execute(new WorkflowEngine(getTrackingClientEndpoint()), new Arguments(new ImmutableMap.Builder<String, Object>()
+//                .put("cartid", "123")
+//                .build()));
+
+        w.compensate(new WorkflowEngine(getTrackingClientEndpoint()), "2df3f10f-c4c8-4a6f-80ef-596c80ee13f7");
     }
 
     private static String getTrackingClientEndpoint() {

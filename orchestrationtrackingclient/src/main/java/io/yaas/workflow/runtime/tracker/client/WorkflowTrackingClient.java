@@ -173,28 +173,57 @@ public class WorkflowTrackingClient {
         return outputAction;
     }
 
-    public ResultBean getActionData(ActionBean inputAction) {
+    public ActionBean getLastAction(String wid, String aid) {
+        ActionBean outputAction = null;
+        try {
+            outputAction = _resource
+                    .path("workflows")
+                    .path(String.valueOf(wid))
+                    .path("actions")
+                    .path(String.valueOf(aid))
+                    .path("last")
+                    .request(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .header("content-type", "application/json")
+                    .get().readEntity(ActionBean.class);
+//            System.out.println(String.format(
+//                    "GET [%s] to [%s], status code [%d], returned data: "
+//                            + System.getProperty("line.separator") + "%s",
+//                    asString(inputAction), _endpoint, 200, asString(outputAction)));
+        } catch (WebApplicationException e) {
+            e.printStackTrace();
+//            System.out.println(String.format(
+//                    "PUT [%s] to [%s] failed, status code [%d]",
+//                    asString(inputAction), _endpoint, e.getResponse().getStatus()));
+        } catch (ProcessingException e) {
+            System.out.println("Request processing exception");
+            e.printStackTrace();
+        }
+        return outputAction;
+    }
+
+    public ResultBean getLastActionData(String wid, String aid) {
         ResultBean outputAction = null;
         try {
             outputAction = _resource
                     .path("workflows")
-                    .path(String.valueOf(inputAction.wid))
+                    .path(String.valueOf(wid))
                     .path("actions")
-                    .path(String.valueOf(inputAction.aid))
-                    .path(String.valueOf(inputAction.timestamp))
+                    .path(String.valueOf(aid))
                     .path("data")
                     .request(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
                     .header("content-type", "application/json")
                     .get().readEntity(ResultBean.class);
-            System.out.println(String.format(
-                    "GET [%s] to [%s], status code [%d], returned data: "
-                            + System.getProperty("line.separator") + "%s",
-                    asString(inputAction), _endpoint, 200, asString(outputAction)));
+//            System.out.println(String.format(
+//                    "GET [%s] to [%s], status code [%d], returned data: "
+//                            + System.getProperty("line.separator") + "%s",
+//                    asString(inputAction), _endpoint, 200, asString(outputAction)));
         } catch (WebApplicationException e) {
-            System.out.println(String.format(
-                    "PUT [%s] to [%s] failed, status code [%d]",
-                    asString(inputAction), _endpoint, e.getResponse().getStatus()));
+            e.printStackTrace();
+//            System.out.println(String.format(
+//                    "PUT [%s] to [%s] failed, status code [%d]",
+//                    asString(inputAction), _endpoint, e.getResponse().getStatus()));
         } catch (ProcessingException e) {
             System.out.println("Request processing exception");
             e.printStackTrace();
@@ -210,8 +239,8 @@ public class WorkflowTrackingClient {
         bean.wid = "52b5692b-d327-4a46-b3c9-42ae7ba6ba01";
         bean.aid = "1_GetShoppingCart_1.0";
         bean.timestamp = "436c2c50-ef12-11e4-b742-1127ca42b8a9";
-        ResultBean r = cli.getActionData(bean);
-        System.out.println(r);
+//        ResultBean r = cli.getActionData(bean);
+//        System.out.println(r);
 //        WorkflowBean testWorkflow = new WorkflowBean("workflow_" + System.currentTimeMillis(), 1);
 //        testWorkflow = cli.createWorkflow(testWorkflow);
 //        ActionBean testAction = new ActionBean(testWorkflow.wid, "action_" + System.currentTimeMillis(), "1", String.valueOf(System.currentTimeMillis()));

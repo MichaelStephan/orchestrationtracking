@@ -84,7 +84,10 @@ public class Workflow {
         engine.runWorkflow(this, start, arguments);
     }
 
-    public void compensate(WorkflowEngine engine) {
+    public void compensate(WorkflowEngine engine, String wid) {
+        ActionInstance start = prepareExecute();
+
+        engine.compensateWorkflow(this, wid, start);
     }
 
     private ActionInstance prepareExecute() {

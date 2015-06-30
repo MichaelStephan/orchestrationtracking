@@ -135,15 +135,14 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
             });
         });
 
-        rm.put("/workflows/:wid/actions/:aid/:timestamp/aestate", (req) -> {
-            handleMessage(req, OrchestrationTrackingServiceVerticle.UPDATE_ACTION_ERROR_STATE_ADDRESS, (address, body) -> {
+        rm.get("/workflows/:wid/actions/:aid/last", (req) -> {
+            handleMessage(req, OrchestrationTrackingServiceVerticle.GET_LAST_ACTION_ADDRESS, (address, body) -> {
                 body.putString("wid", checkNotNull(req.params().get("wid")));
                 body.putString("aid", checkNotNull(req.params().get("aid")));
-                body.putString("timestamp", checkNotNull(req.params().get("timestamp")));
-                container.logger().info("received PUT /workflows/:wid/actions/:aid/:timestamp/aestate " + body);
+                container.logger().info("received GET /workflows/:wid/actions/:aid/last " + body);
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
-                        req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end();
+                        req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end(asyncResult.result().body().encode());
                     }, (ignore) -> {
                         req.response().setStatusCode(500).end();
                     });
@@ -151,12 +150,11 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
             });
         });
 
-        rm.get("/workflows/:wid/actions/:aid/:timestamp/data", (req) -> {
-            handleMessage(req, OrchestrationTrackingServiceVerticle.GET_ACTION_DATA_ADDRESS, (address, body) -> {
+        rm.get("/workflows/:wid/actions/:aid/last/data", (req) -> {
+            handleMessage(req, OrchestrationTrackingServiceVerticle.GET_LAST_ACTION_DATA_ADDRESS, (address, body) -> {
                 body.putString("wid", checkNotNull(req.params().get("wid")));
                 body.putString("aid", checkNotNull(req.params().get("aid")));
-                body.putString("timestamp", checkNotNull(req.params().get("timestamp")));
-                container.logger().info("received GET /workflows/:wid/actions/:aid/:timestamp/data " + body);
+                container.logger().info("received GET /workflows/:wid/actions/:aid/last/data " + body);
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
                         req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end(asyncResult.result().body().encode());

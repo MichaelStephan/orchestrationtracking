@@ -9,6 +9,7 @@ import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.runtime.action.instance.EndActionInstance;
 import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 import io.yaas.workflow.runtime.execution.ExecutionStrategy;
+import io.yaas.workflow.runtime.execution.ForcedCompensationExecutor;
 import io.yaas.workflow.runtime.execution.StandardExecutor;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 
@@ -41,6 +42,12 @@ public class WorkflowEngine {
     public void runWorkflow(Workflow workflow, ActionInstance startAction, Arguments arguments) {
         WorkflowInstance workflowInstance = new WorkflowInstance(workflow, _trackingClient, startAction, findEndActionInstance(startAction));
         runAction(StandardExecutor.getInstance(), workflowInstance, startAction, arguments);
+    }
+
+    public void compensateWorkflow(Workflow workflow, String wid, ActionInstance startAction) {
+        WorkflowInstance workflowInstance = new WorkflowInstance(workflow, _trackingClient, startAction, findEndActionInstance(startAction), wid);
+
+        runAction(new ForcedCompensationExecutor(), workflowInstance, workflowInstance.getEnd(), Arguments.EMPTY_ARGUMENTS);
     }
 
     private void runAction(ExecutionStrategy executor, WorkflowInstance workflow, ActionInstance action, Arguments arguments) {
