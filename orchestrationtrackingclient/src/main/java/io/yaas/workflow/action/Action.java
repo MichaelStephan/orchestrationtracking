@@ -22,7 +22,7 @@ public interface Action {
 
     Collection<Action> getSuccessors();
     Collection<Action> getPredecessors();
-    Iterator<Action> iterator();
+//    Iterator<Action> iterator();
 
     // Graph build
     // TODO refactor

@@ -193,9 +193,4 @@ abstract class BaseAction implements Action {
             return action.getName();
         }).collect(Collectors.toList());
     }
-
-    @Override
-    public Iterator<Action> iterator() {
-        return new ForwardIterator(this);
-    }
 }
