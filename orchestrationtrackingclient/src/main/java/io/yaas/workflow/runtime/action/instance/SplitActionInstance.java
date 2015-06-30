@@ -36,11 +36,6 @@ public class SplitActionInstance extends SimpleActionInstance {
     }
 
     @Override
-    public ActionInstance createCompensationActionInstance() {
-        return new SplitCompensationActionInstance(this, count);
-    }
-
-    @Override
     public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) {
         result.set(new ActionResult(arguments));
     }

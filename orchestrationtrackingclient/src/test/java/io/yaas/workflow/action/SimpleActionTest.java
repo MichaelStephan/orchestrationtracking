@@ -17,7 +17,6 @@ public class SimpleActionTest {
 
     }
 
-
     @Test
     public void testGetId() throws Exception {
         Action a = new SimpleAction("A", "1.0");
