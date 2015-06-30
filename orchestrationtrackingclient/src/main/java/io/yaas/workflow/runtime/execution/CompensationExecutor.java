@@ -30,21 +30,12 @@ public class CompensationExecutor extends AbstractExecutor implements ExecutionS
 
     @Override
     public void error(WorkflowInstance workflow, ActionInstance action, Arguments arguments, Throwable cause) {
-        cause.printStackTrace();
         action.getCompensationActionInstance().error(workflow, cause);
     }
 
     public ExecutionStrategy getActionErrorStrategy() {
         return new FailureExecutor();
     }
-
-//    public Collection<ActionInstance> getNext(ActionInstance action) {
-//        // TODO
-//        CompensationActionInstance compensationActionInstance = (CompensationActionInstance) action;
-//
-//        return getTraversalStrategy(null).getNext(compensationActionInstance.getActionInstance());
-//    }
-
 
     @Override
     public TraversalStrategy getTraversalStrategy(ActionInstance action) {

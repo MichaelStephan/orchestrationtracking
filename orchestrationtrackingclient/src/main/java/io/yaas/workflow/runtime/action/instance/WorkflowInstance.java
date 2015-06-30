@@ -80,4 +80,12 @@ public class WorkflowInstance {
         client.updateWorkflow(bean);
         this.id = null;
     }
+
+    public void compensated() {
+        WorkflowBean bean = new WorkflowBean(getName(), getVersion());
+        bean.wstate = State.COMPENSATED;
+        bean.wid = getId();
+        client.updateWorkflow(bean);
+        this.id = null;
+    }
 }

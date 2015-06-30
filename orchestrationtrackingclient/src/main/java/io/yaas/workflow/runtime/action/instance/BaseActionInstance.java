@@ -12,12 +12,6 @@ public abstract class BaseActionInstance implements ActionInstance {
     protected String id;
     protected Set<ActionInstance> predecessors = new HashSet<>();
     protected Set<ActionInstance> successors = new HashSet<>();
-    protected ActionInstance compensationActionInstance;
-
-    @Override
-    public ActionInstance getCompensationActionInstance() {
-        return compensationActionInstance;
-    }
 
     public void addSuccessor(ActionInstance successor) {
         _addSuccessor(successor);

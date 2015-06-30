@@ -78,10 +78,10 @@ public class Main {
 
         capturePayment.setCompensationFunction((arguments) -> {
             // arguments.getError().getMessage()
-//            throw new RuntimeException("bum2");
+            throw new RuntimeException("bum2");
 
-            System.out.println("In capturePayment an issue is occured !!!");
-            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
+//            System.out.println("In capturePayment an issue is occured !!!");
+//            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
         });
         // "create order"
 

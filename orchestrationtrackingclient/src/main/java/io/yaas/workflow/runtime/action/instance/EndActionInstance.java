@@ -4,7 +4,6 @@ import com.google.common.util.concurrent.SettableFuture;
 import io.yaas.workflow.action.Action;
 import io.yaas.workflow.action.ActionResult;
 import io.yaas.workflow.action.Arguments;
-import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 
 import java.util.Collections;
 
@@ -12,6 +11,7 @@ import java.util.Collections;
  * Created by i303874 on 4/29/15.
  */
 public class EndActionInstance extends SimpleActionInstance {
+
     public EndActionInstance(String id, Action action) {
         super(id, action);
     }

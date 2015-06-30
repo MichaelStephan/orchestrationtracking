@@ -53,7 +53,7 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
 
     public final static String GET_ACTION_DATA_ADDRESS = "action.data_get";
 
-    private enum WorkflowState {STARTED, SUCCEEDED, FAILED}
+    private enum WorkflowState {STARTED, SUCCEEDED, COMPENSATED, FAILED}
 
     private enum ActionState {STARTED, SUCCEEDED, FAILED}
 

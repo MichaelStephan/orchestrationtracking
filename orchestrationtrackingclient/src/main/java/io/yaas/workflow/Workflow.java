@@ -9,19 +9,12 @@ import java.util.*;
 
 public class Workflow {
 
-    enum COMPENSTAION_STRATEGY {
-        BACK, FAIL_FAST, CUSTOM
-    }
-
-    ;
-
     private String _name;
     private int _version;
 
     private SimpleAction _startAction;
 
     private ActionFunction _onFailureHandler;
-//    private ActionFunction _onUnknownHandler;
 
     public Workflow(String name, int version) {
         _name = name;
@@ -81,9 +74,6 @@ public class Workflow {
         } else {
             return new SimpleActionInstance(id, action);
         }
-        // Build CompensationActionInstance graph
-
-
     }
 
     public void execute(WorkflowEngine engine, Arguments arguments) {
@@ -92,6 +82,9 @@ public class Workflow {
         print(start);
 
         engine.runWorkflow(this, start, arguments);
+    }
+
+    public void compensate(WorkflowEngine engine) {
     }
 
     private ActionInstance prepareExecute() {
@@ -105,8 +98,6 @@ public class Workflow {
         for (Action successor : a.getSuccessors()) {
             insertEndAction(successor);
         }
-
-        //             a.insertAfter(new EndAction());
 
         if (a.getSuccessors().isEmpty() && !(a instanceof EndAction)) {
             a.addAction(new EndAction());

@@ -19,15 +19,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class SimpleActionInstance extends BaseActionInstance implements ActionInstance {
     private Action action;
 
+    private SimpleCompensationActionInstance compensationActionInstance = null;
+
+    private Object compensationActionInstanceLock = new Object();
+
     protected String lastCreatedTimestamp;
 
     public SimpleActionInstance(String id, Action action) {
         this.id = checkNotNull(id);
         this.action = checkNotNull(action);
-
-        if (!(this instanceof SimpleCompensationActionInstance)) {
-            this.compensationActionInstance = new SimpleCompensationActionInstance(this);
-        }
     }
 
     public String getId() {
@@ -42,6 +42,21 @@ public class SimpleActionInstance extends BaseActionInstance implements ActionIn
     @Override
     public String getVersion() {
         return this.action.getVersion();
+    }
+
+    @Override
+    public ActionInstance createCompensationActionInstance() {
+        return new SimpleCompensationActionInstance(this);
+    }
+
+    @Override
+    public ActionInstance getCompensationActionInstance() {
+        synchronized (compensationActionInstanceLock) {
+            if (compensationActionInstance == null) {
+                compensationActionInstance = new SimpleCompensationActionInstance(this);
+            }
+            return compensationActionInstance;
+        }
     }
 
     @Override

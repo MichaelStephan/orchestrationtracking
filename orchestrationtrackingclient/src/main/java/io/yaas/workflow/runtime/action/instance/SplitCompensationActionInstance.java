@@ -42,6 +42,11 @@ public class SplitCompensationActionInstance extends SimpleActionInstance {
         }
     }
 
+    @Override
+    public ActionInstance getCompensationActionInstance() {
+        return null;
+    }
+
     public ActionInstance getActionInstance() {
         return actionInstance;
     }

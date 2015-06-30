@@ -48,6 +48,8 @@ public interface ActionInstance {
 
     String getVersion();
 
+    ActionInstance createCompensationActionInstance();
+
     ActionInstance getCompensationActionInstance();
 
     // TODO clean WorkflowTrackingClient client

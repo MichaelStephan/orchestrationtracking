@@ -9,6 +9,7 @@ public enum State {
 	STARTED,
 	FAILED,
 	SUCCEEDED,
+	COMPENSATED,
 	UNKNOWN;
     
 	@JsonValue

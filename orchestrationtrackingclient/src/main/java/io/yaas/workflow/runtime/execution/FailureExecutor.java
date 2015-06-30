@@ -20,17 +20,17 @@ public class FailureExecutor implements ExecutionStrategy {
 
     @Override
     public void success(WorkflowInstance workflow, ActionResult result, ActionInstance action) {
-
+        error(workflow, action, Arguments.EMPTY_ARGUMENTS, new UnknownError());
     }
 
     @Override
     public void error(WorkflowInstance workflow, ActionInstance action, Arguments arguments, Throwable cause) {
-
+        workflow.error();
     }
 
     @Override
     public void execute(WorkflowInstance workflow, ActionInstance action, Arguments arguments, SettableFuture<ActionResult> result) {
-
+        error(workflow, action, Arguments.EMPTY_ARGUMENTS, new UnknownError());
     }
 
     @Override

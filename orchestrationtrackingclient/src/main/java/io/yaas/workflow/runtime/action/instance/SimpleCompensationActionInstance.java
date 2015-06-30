@@ -19,6 +19,11 @@ public class SimpleCompensationActionInstance extends SimpleActionInstance {
         this.actionInstance = actionInstance;
     }
 
+    @Override
+    public ActionInstance getCompensationActionInstance() {
+        return null;
+    }
+
     public ActionInstance getActionInstance() {
         return actionInstance;
     }
