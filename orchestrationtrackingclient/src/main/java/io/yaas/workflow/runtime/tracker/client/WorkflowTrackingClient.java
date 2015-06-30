@@ -210,6 +210,7 @@ public class WorkflowTrackingClient {
                     .path(String.valueOf(wid))
                     .path("actions")
                     .path(String.valueOf(aid))
+                    .path("last")
                     .path("data")
                     .request(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
