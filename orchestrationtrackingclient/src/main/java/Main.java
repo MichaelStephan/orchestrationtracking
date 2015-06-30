@@ -1,10 +1,12 @@
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import io.yaas.workflow.*;
+import io.yaas.workflow.Workflow;
 import io.yaas.workflow.action.ActionResult;
 import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.action.SimpleAction;
 import io.yaas.workflow.runtime.WorkflowEngine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -15,8 +17,9 @@ import java.util.Set;
  */
 public class Main {
 
-    public static void main(String[] args) {
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
+    public static void main(String[] args) {
         // takes cartId, returns cart (productId: quantity)
 
         SimpleAction getShoppingCart = new SimpleAction("Get Shopping Cart", "1.0", (arguments) -> {
