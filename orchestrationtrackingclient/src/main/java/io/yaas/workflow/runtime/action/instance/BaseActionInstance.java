@@ -36,6 +36,4 @@ abstract class BaseActionInstance extends BaseNode<ActionInstance> implements Ac
     public String getVersion() {
         return this.action.getVersion();
     }
-
-
 }
