@@ -111,12 +111,7 @@ public class OrchestrationTrackingServiceAPIVerticleTest extends TestVerticle {
         Handler<? extends Message> handler = (Message<JsonObject> message) -> {
             assertEquals(wid, message.body().getString("wid"));
 
-            message.reply(new JsonObject()
-//                    .putString("wid", wid)
-//                    .putString("name", name)
-//                    .putNumber("version", version)
-//                    .putString("state", state)
-            );
+            message.reply(new JsonObject().putString("wid", wid));
         };
 
         vertx.eventBus().registerHandler(OrchestrationTrackingServiceVerticle.UPDATE_WORKFLOW_ADDRESS, handler, (result) -> {
