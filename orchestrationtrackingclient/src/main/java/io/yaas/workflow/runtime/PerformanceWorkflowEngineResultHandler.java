@@ -17,7 +17,7 @@ public class PerformanceWorkflowEngineResultHandler implements WorkflowEngineRes
 
     private final static long INTERVAL = 5000;
 
-    AtomicLong last = new AtomicLong();
+    AtomicLong last = new AtomicLong(System.currentTimeMillis());
 
     AtomicLong count = new AtomicLong();
 
