@@ -20,6 +20,7 @@ public class EndActionInstance extends SimpleActionInstance {
     public void succeed(WorkflowInstance workflowInstance, ActionResult result) {
         super.succeed(workflowInstance, result);
         workflowInstance.succeed();
+        workflowInstance.getResultHandler().succeeded(workflowInstance.getId(), result.getResult());
     }
 
     @Override

@@ -2,10 +2,12 @@ package io.yaas.workflow;
 
 import io.yaas.workflow.action.*;
 import io.yaas.workflow.runtime.ActionInstance;
-import io.yaas.workflow.runtime.action.instance.*;
 import io.yaas.workflow.runtime.WorkflowEngine;
+import io.yaas.workflow.runtime.WorkflowEngineResultHandler;
+import io.yaas.workflow.runtime.action.instance.*;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Workflow {
 
@@ -76,18 +78,18 @@ public class Workflow {
         }
     }
 
-    public void execute(WorkflowEngine engine, Arguments arguments) {
+    public void execute(WorkflowEngine engine, Arguments arguments, WorkflowEngineResultHandler result) {
         ActionInstance start = prepareExecute();
 
         print(start);
 
-        engine.runWorkflow(this, start, arguments);
+        engine.runWorkflow(this, start, arguments, result);
     }
 
-    public void compensate(WorkflowEngine engine, String wid) {
+    public void compensate(WorkflowEngine engine, String wid, WorkflowEngineResultHandler result) {
         ActionInstance start = prepareExecute();
 
-        engine.compensateWorkflow(this, wid, start);
+        engine.compensateWorkflow(this, wid, start, result);
     }
 
     private ActionInstance prepareExecute() {

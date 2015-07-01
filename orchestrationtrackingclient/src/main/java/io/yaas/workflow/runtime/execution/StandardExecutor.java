@@ -21,10 +21,10 @@ public class StandardExecutor extends AbstractExecutor {
         return INSTANCE;
     }
 
-    public ExecutionStrategy getActionErrorStrategy() {
+    public ExecutionStrategy getFallbackExecutionStrategy() {
         return new CompensationExecutor();
     }
-    
+
     @Override
     public void execute(WorkflowInstance workflow, ActionInstance action, Arguments arguments, SettableFuture<ActionResult> result) {
         action.execute(workflow, arguments, result);

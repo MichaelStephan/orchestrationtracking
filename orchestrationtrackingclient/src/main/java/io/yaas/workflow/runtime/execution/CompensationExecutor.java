@@ -33,7 +33,7 @@ public class CompensationExecutor extends AbstractExecutor implements ExecutionS
         action.getCompensationActionInstance().error(workflow, cause);
     }
 
-    public ExecutionStrategy getActionErrorStrategy() {
+    public ExecutionStrategy getFallbackExecutionStrategy() {
         return new FailureExecutor();
     }
 

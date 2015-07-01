@@ -48,7 +48,7 @@ public class ForcedCompensationExecutor extends AbstractExecutor implements Exec
         action.getCompensationActionInstance().error(workflow, cause);
     }
 
-    public ExecutionStrategy getActionErrorStrategy() {
+    public ExecutionStrategy getFallbackExecutionStrategy() {
         return new FailureExecutor();
     }
 

@@ -2,6 +2,7 @@ package io.yaas.workflow.runtime.action.instance;
 
 import io.yaas.workflow.Workflow;
 import io.yaas.workflow.runtime.ActionInstance;
+import io.yaas.workflow.runtime.WorkflowEngineResultHandler;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 import io.yaas.workflow.runtime.tracker.model.State;
 import io.yaas.workflow.runtime.tracker.model.WorkflowBean;
@@ -34,20 +35,28 @@ public class WorkflowInstance {
 
     private WorkflowTrackingClient client;
 
-    public WorkflowInstance(Workflow workflow, WorkflowTrackingClient client, ActionInstance start, ActionInstance end) {
+    private WorkflowEngineResultHandler resultHandler;
+
+    public WorkflowInstance(Workflow workflow, WorkflowTrackingClient client, ActionInstance start, ActionInstance end, WorkflowEngineResultHandler resultHandler) {
         this.workflow = checkNotNull(workflow);
         this.client = checkNotNull(client);
         this.start = checkNotNull(start);
         this.end = checkNotNull(end);
+        this.resultHandler = checkNotNull(resultHandler);
     }
 
-    public WorkflowInstance(Workflow workflow, WorkflowTrackingClient client, ActionInstance start, ActionInstance end, String wid) {
-        this(workflow, client, start, end);
+    public WorkflowInstance(Workflow workflow, WorkflowTrackingClient client, ActionInstance start, ActionInstance end, String wid, WorkflowEngineResultHandler resultHandler) {
+        this(workflow, client, start, end, resultHandler);
         this.id = checkNotNull(wid);
+        this.resultHandler = checkNotNull(resultHandler);
     }
 
     public Workflow getWorkflow() {
         return workflow;
+    }
+
+    public WorkflowEngineResultHandler getResultHandler() {
+        return resultHandler;
     }
 
     public String getId() {
@@ -75,7 +84,6 @@ public class WorkflowInstance {
         bean.wstate = State.SUCCEEDED;
         bean.wid = getId();
         client.updateWorkflow(bean);
-        this.id = null;
     }
 
     public void error() {
@@ -83,7 +91,6 @@ public class WorkflowInstance {
         bean.wstate = State.FAILED;
         bean.wid = getId();
         client.updateWorkflow(bean);
-        this.id = null;
     }
 
     public void compensated() {
@@ -91,6 +98,5 @@ public class WorkflowInstance {
         bean.wstate = State.COMPENSATED;
         bean.wid = getId();
         client.updateWorkflow(bean);
-        this.id = null;
     }
 }
