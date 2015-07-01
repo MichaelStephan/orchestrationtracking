@@ -31,8 +31,8 @@ public class ArgumentsTest {
 
     @Test
     public void testClear() throws Exception {
-        arguments.clear();
         exception.expect(UnsupportedOperationException.class);
+        arguments.clear();
     }
 
     @Test
@@ -70,20 +70,21 @@ public class ArgumentsTest {
     @Test
     public void testPut() throws Exception {
         exception.expect(UnsupportedOperationException.class);
+        arguments.put("testKey3", "testValue3");
     }
 
     @Test
     public void testPutAll() throws Exception {
         Map<String, Object> m = new HashMap<>();
         m.put("testKey3", "testValue3");
-        arguments.putAll(m);
         exception.expect(UnsupportedOperationException.class);
+        arguments.putAll(m);
     }
 
     @Test
     public void testRemove() throws Exception {
-        arguments.remove("testKey1");
         exception.expect(UnsupportedOperationException.class);
+        arguments.remove("testKey1");
     }
 
     @Test
