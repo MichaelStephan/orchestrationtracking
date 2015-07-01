@@ -3,7 +3,6 @@ package io.yaas.workflow.action;
 import io.yaas.workflow.Workflow;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * Created by D032705 on 15.05.2015.

@@ -46,7 +46,6 @@ public class Common {
             err.putString("message", e.getClass().getSimpleName() + ": " + e.getMessage());
             message.reply(err);
         }
-
     }
 
     public static void checkContentTypeIsApplicationJson(HttpServerRequest req) {
