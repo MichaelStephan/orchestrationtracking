@@ -107,11 +107,11 @@ public class Main {
         calculateCartPrice.addAction(capturePayment);
         capturePayment.addAction(createOrder);
 
-//        w.execute(new WorkflowEngine(getTrackingClientEndpoint()), new Arguments(new ImmutableMap.Builder<String, Object>()
-//                .put("cartid", "123")
-//                .build()));
+        w.execute(new WorkflowEngine(getTrackingClientEndpoint()), new Arguments(new ImmutableMap.Builder<String, Object>()
+                .put("cartid", "123")
+                .build()));
 
-        w.compensate(new WorkflowEngine(getTrackingClientEndpoint()), "fa4f2e28-458e-4ccc-b553-cbcb7c37028e");
+//        w.compensate(new WorkflowEngine(getTrackingClientEndpoint()), "fa4f2e28-458e-4ccc-b553-cbcb7c37028e");
     }
 
     private static String getTrackingClientEndpoint() {
