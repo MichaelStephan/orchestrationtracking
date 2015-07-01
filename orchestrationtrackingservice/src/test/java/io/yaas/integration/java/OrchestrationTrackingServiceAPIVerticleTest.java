@@ -28,7 +28,7 @@ public class OrchestrationTrackingServiceAPIVerticleTest extends TestVerticle {
         return client;
     }
 
-    //    @Test
+    @Test
     public void testNotFoundRoute() {
         HttpClient client = getClient();
         client.getNow("/doesnotexist", STANDARD_HEADERS, (response) -> {
@@ -38,7 +38,7 @@ public class OrchestrationTrackingServiceAPIVerticleTest extends TestVerticle {
         });
     }
 
-    //    @Test
+    @Test
     public void testGetWorkflowsRoute() {
         Handler<? extends Message> handler = (message) -> {
             message.reply(new JsonObject().putObject("result", new JsonObject()));
@@ -59,7 +59,7 @@ public class OrchestrationTrackingServiceAPIVerticleTest extends TestVerticle {
         });
     }
 
-    //    @Test
+    @Test
     public void testPostWorkflowsRoute() {
         String wid = "123";
         String name = "name";
@@ -74,7 +74,7 @@ public class OrchestrationTrackingServiceAPIVerticleTest extends TestVerticle {
                     .putString("wid", wid)
                     .putString("name", name)
                     .putNumber("version", version)
-                    .putString("state", state));
+                    .putString("astate", state));
         };
 
         vertx.eventBus().registerHandler(OrchestrationTrackingServiceVerticle.CREATE_AND_START_WORKFLOW_ADDRESS, handler, (result) -> {
@@ -89,6 +89,7 @@ public class OrchestrationTrackingServiceAPIVerticleTest extends TestVerticle {
                     assertEquals(wid, json.getString("wid"));
                     assertEquals(name, json.getString("name"));
                     assertEquals(version, json.getNumber("version"));
+                    assertEquals(state, json.getString("astate"));
 
                     vertx.eventBus().unregisterHandler(OrchestrationTrackingServiceVerticle.CREATE_AND_START_WORKFLOW_ADDRESS, handler, result2 -> {
                         client.close();
@@ -128,6 +129,54 @@ public class OrchestrationTrackingServiceAPIVerticleTest extends TestVerticle {
             })
                     .putHeader("Content-Type", "application/json")
                     .end(new JsonObject().encode());
+        });
+    }
+
+    @Test
+    public void testPostWorkflowActionsRoute() {
+        String wid = "123";
+        String aid = "456";
+        String name = "name";
+        String timestamp = "789";
+        String state = "state";
+        int version = 1;
+
+        Handler<? extends Message> handler = (Message<JsonObject> message) -> {
+            assertEquals(name, message.body().getString("name"));
+            assertEquals(version, message.body().getNumber("version"));
+
+            message.reply(new JsonObject()
+                    .putString("wid", wid)
+                    .putString("aid", wid)
+                    .putNumber("version", version)
+                    .putString("timestamp", timestamp)
+                    .putString("astate", state));
+        };
+
+        vertx.eventBus().registerHandler(OrchestrationTrackingServiceVerticle.CREATE_AND_START_ACTION_ADDRESS, handler, (result) -> {
+            assertTrue(result.succeeded());
+
+            HttpClient client = getClient();
+            client.post("/workflows/" + wid + "/actions", (response) -> {
+                assertEquals(201, response.statusCode());
+
+                response.bodyHandler(body -> {
+                    JsonObject json = new JsonObject(body.getString(0, body.length()));
+                    assertEquals(wid, json.getString("wid"));
+                    assertEquals(version, json.getNumber("version"));
+
+                    vertx.eventBus().unregisterHandler(OrchestrationTrackingServiceVerticle.CREATE_AND_START_ACTION_ADDRESS, handler, result2 -> {
+                        client.close();
+                        testComplete();
+                    });
+                });
+            })
+                    .putHeader("Content-Type", "application/json")
+                    .end(new JsonObject()
+                            .putString("name", name)
+                            .putNumber("version", version)
+                            .putString("aid", aid)
+                            .encode());
         });
     }
 
