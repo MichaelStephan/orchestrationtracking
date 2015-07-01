@@ -16,7 +16,6 @@ public class StartActionInstance extends SimpleActionInstance {
 
     private Object compensationActionInstanceLock = new Object();
 
-
     public StartActionInstance(String id, Action action) {
         super(id, action);
     }
