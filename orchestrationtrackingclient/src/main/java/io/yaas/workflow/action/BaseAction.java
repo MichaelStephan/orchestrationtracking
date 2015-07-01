@@ -39,14 +39,8 @@ abstract class BaseAction extends BaseNode<Action> implements Action {
         actionFunction = f;
     }
 
-    private String getNameVersion() {
-        return getId(getName(), getVersion());
-    }
-
     @Override
     public Action setActionFunction(ActionFunction f) {
-        if (actionFunction != null)
-            throw new IllegalStateException();
         actionFunction = f;
         return this;
     }

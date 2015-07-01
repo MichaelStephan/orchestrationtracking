@@ -75,7 +75,7 @@ public class SimpleActionInstanceTest {
     @Test
     public void testGetId() throws Exception {
         ActionInstance a = new SimpleActionInstance("1", actionA);
-        assertEquals("1_A.1.0", a.getId());
+        assertEquals("1_A_1.0", a.getId());
     }
 
     @Test
