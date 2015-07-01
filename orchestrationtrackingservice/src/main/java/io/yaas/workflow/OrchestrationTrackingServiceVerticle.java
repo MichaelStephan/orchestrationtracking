@@ -182,7 +182,6 @@ public class OrchestrationTrackingServiceVerticle extends Verticle {
             }, (ignore) -> {
                 Throwable cause = asyncResult.cause();
                 container.logger().info("UPDATE yaas.workflows SET wstate failed", cause);
-                cause.printStackTrace();
                 result.setFailure(cause);
             });
         });

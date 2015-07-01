@@ -34,7 +34,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
 
     private int getAPIHttpPort() {
-        return getContainer().config().getInteger("PORT");
+        try {
+            return getContainer().config().getInteger("PORT");
+        } catch (Exception e) {
+            throw new IllegalStateException("PORT configuration does not exist or could not be parsed to integer");
+        }
     }
 
     private void handleMessage(HttpServerRequest req, String address, MessageHandler handler) {

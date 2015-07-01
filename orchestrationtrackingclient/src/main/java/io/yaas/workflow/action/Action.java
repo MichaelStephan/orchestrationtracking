@@ -4,7 +4,6 @@ import io.yaas.workflow.Workflow;
 import io.yaas.workflow.graph.Node;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * Created by D032705 on 15.05.2015.
