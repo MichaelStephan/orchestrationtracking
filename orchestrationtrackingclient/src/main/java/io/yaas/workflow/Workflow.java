@@ -81,7 +81,7 @@ public class Workflow {
     public void execute(WorkflowEngine engine, Arguments arguments, WorkflowEngineResultHandler result) {
         ActionInstance start = prepareExecute();
 
-        print(start);
+//        print(start);
 
         engine.runWorkflow(this, start, arguments, result);
     }
