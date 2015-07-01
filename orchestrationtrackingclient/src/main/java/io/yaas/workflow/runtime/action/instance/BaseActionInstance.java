@@ -4,8 +4,6 @@ import io.yaas.workflow.action.Action;
 import io.yaas.workflow.graph.BaseNode;
 import io.yaas.workflow.runtime.ActionInstance;
 
-import java.util.*;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -36,6 +34,4 @@ abstract class BaseActionInstance extends BaseNode<ActionInstance> implements Ac
     public String getVersion() {
         return this.action.getVersion();
     }
-
-
 }

@@ -9,10 +9,6 @@ import io.yaas.workflow.runtime.tracker.model.ActionBean;
 import io.yaas.workflow.runtime.tracker.model.ResultBean;
 import io.yaas.workflow.runtime.tracker.model.State;
 
-import java.util.Iterator;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * Created by i303874 on 4/29/15.
  */
@@ -62,14 +58,8 @@ public class SimpleActionInstance extends BaseActionInstance implements ActionIn
     }
 
     @Override
-    public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) {
-        new Thread(() -> {
-            try {
-                result.set(action.getActionFunction().apply(arguments));
-            } catch (Exception e) {
-                result.setException(e);
-            }
-        }).start();
+    public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) throws Exception {
+        result.set(action.getActionFunction().apply(arguments));
     }
 
     @Override

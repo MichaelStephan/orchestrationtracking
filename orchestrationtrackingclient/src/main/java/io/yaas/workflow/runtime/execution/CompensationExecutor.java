@@ -15,7 +15,11 @@ public class CompensationExecutor extends AbstractExecutor implements ExecutionS
 
     @Override
     public void execute(WorkflowInstance workflow, ActionInstance action, Arguments arguments, SettableFuture<ActionResult> result) {
-        action.getCompensationActionInstance().execute(workflow, action.restore(workflow).getResult(), result);
+        try {
+            action.getCompensationActionInstance().execute(workflow, action.restore(workflow).getResult(), result);
+        } catch (Exception e) {
+            result.setException(e);
+        }
     }
 
     @Override

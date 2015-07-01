@@ -71,7 +71,11 @@ public class WorkflowEngine {
             }
         });
 
-        executor.start(workflow, action);
-        executor.execute(workflow, action, arguments, future);
+        try {
+            executor.start(workflow, action);
+            executor.execute(workflow, action, arguments, future);
+        } catch (Exception e) {
+            workflow.getResultHandler().failed(workflow, e);
+        }
     }
 }

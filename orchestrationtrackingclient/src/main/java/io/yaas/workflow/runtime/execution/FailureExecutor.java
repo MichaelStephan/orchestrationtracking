@@ -26,7 +26,7 @@ public class FailureExecutor implements ExecutionStrategy {
     @Override
     public void error(WorkflowInstance workflow, ActionInstance action, Arguments arguments, Throwable cause) {
         workflow.error();
-        workflow.getResultHandler().failed(workflow.getId(), cause);
+        workflow.getResultHandler().failed(workflow, cause);
     }
 
     @Override

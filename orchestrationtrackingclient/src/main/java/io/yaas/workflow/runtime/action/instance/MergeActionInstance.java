@@ -37,18 +37,15 @@ public class MergeActionInstance extends SimpleActionInstance {
 
     @Override
     public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) {
-        new Thread(() -> {
-            _results.add(new ActionResult(arguments));
-            if (_count.decrementAndGet() == 0) {
-                // TODO make nicer !!!
-                Map<String, Object> consolidatedArguments = new HashMap<>();
-                _results.stream().forEach((argument) -> {
-                    consolidatedArguments.putAll(argument.getResult());
-                });
+        _results.add(new ActionResult(arguments));
+        if (_count.decrementAndGet() == 0) {
+            Map<String, Object> consolidatedArguments = new HashMap<>();
+            _results.stream().forEach((argument) -> {
+                consolidatedArguments.putAll(argument.getResult());
+            });
 
-                result.set(new ActionResult(new Arguments(consolidatedArguments)));
-            }
-        }).start();
+            result.set(new ActionResult(new Arguments(consolidatedArguments)));
+        }
     }
 
     @Override

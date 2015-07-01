@@ -7,9 +7,6 @@ import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.graph.Node;
 import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 
-import java.util.Collection;
-import java.util.Iterator;
-
 /**
  * Created by i303874 on 4/28/15.
  */
@@ -29,7 +26,7 @@ public interface ActionInstance extends Node<ActionInstance> {
 
     void error(WorkflowInstance workflowInstance, Throwable cause);
 
-    void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result);
+    void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) throws Exception;
 
     ActionResult restore(WorkflowInstance workflowInstance);
 }
