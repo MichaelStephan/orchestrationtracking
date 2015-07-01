@@ -29,9 +29,6 @@ public class WorkflowEngine {
 
     private ActionInstance findEndActionInstance(ActionInstance action) {
         checkNotNull(action);
-
-        System.out.println(action.getClass());
-
         if (action instanceof EndActionInstance) {
             return action;
         } else {
@@ -39,13 +36,13 @@ public class WorkflowEngine {
         }
     }
 
-    public void runWorkflow(Workflow workflow, ActionInstance startAction, Arguments arguments) {
-        WorkflowInstance workflowInstance = new WorkflowInstance(workflow, _trackingClient, startAction, findEndActionInstance(startAction));
+    public void runWorkflow(Workflow workflow, ActionInstance startAction, Arguments arguments, WorkflowEngineResultHandler resultHandler) {
+        WorkflowInstance workflowInstance = new WorkflowInstance(workflow, _trackingClient, startAction, findEndActionInstance(startAction), resultHandler);
         runAction(StandardExecutor.getInstance(), workflowInstance, startAction, arguments);
     }
 
-    public void compensateWorkflow(Workflow workflow, String wid, ActionInstance startAction) {
-        WorkflowInstance workflowInstance = new WorkflowInstance(workflow, _trackingClient, startAction, findEndActionInstance(startAction), wid);
+    public void compensateWorkflow(Workflow workflow, String wid, ActionInstance startAction, WorkflowEngineResultHandler resultHandler) {
+        WorkflowInstance workflowInstance = new WorkflowInstance(workflow, _trackingClient, startAction, findEndActionInstance(startAction), wid, resultHandler);
 
         runAction(new ForcedCompensationExecutor(), workflowInstance, workflowInstance.getEnd(), Arguments.EMPTY_ARGUMENTS);
     }
@@ -57,26 +54,28 @@ public class WorkflowEngine {
             public void onSuccess(ActionResult result) {
                 executor.success(workflow, result, action);
 
-                executor.getNext(action).forEach((next) -> {
-                    runAction(executor, workflow, next, result.getResult());
+                executor.getNext(action).forEach((nextAction) -> {
+                    runAction(executor, workflow, nextAction, result.getResult());
                 });
             }
 
             @Override
             public void onFailure(Throwable cause) {
-                // TODO leads to infinite loop in case of fail fast fails
-
                 executor.error(workflow, action, arguments, cause);
                 arguments.addError(cause);
 
-                ExecutionStrategy fallbackExecutor = executor.getActionErrorStrategy();
+                ExecutionStrategy fallbackExecutor = executor.getFallbackExecutionStrategy();
                 if (fallbackExecutor != null) {
                     runAction(fallbackExecutor, workflow, workflow.getEnd(), arguments);
                 }
             }
         });
 
-        executor.start(workflow, action);
-        executor.execute(workflow, action, arguments, future);
+        try {
+            executor.start(workflow, action);
+            executor.execute(workflow, action, arguments, future);
+        } catch (Exception e) {
+            workflow.getResultHandler().failed(workflow, e);
+        }
     }
 }

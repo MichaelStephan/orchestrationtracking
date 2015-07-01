@@ -40,13 +40,7 @@ public class SimpleCompensationActionInstance extends SimpleActionInstance {
     }
 
     @Override
-    public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) {
-        new Thread(() -> {
-            try {
-                result.set(getAction().getCompensationFunction().apply(arguments));
-            } catch (Exception e) {
-                result.setException(e);
-            }
-        }).start();
+    public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) throws Exception {
+        result.set(getAction().getCompensationFunction().apply(arguments));
     }
 }

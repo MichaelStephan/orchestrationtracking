@@ -20,10 +20,11 @@ public class EndActionInstance extends SimpleActionInstance {
     public void succeed(WorkflowInstance workflowInstance, ActionResult result) {
         super.succeed(workflowInstance, result);
         workflowInstance.succeed();
+        workflowInstance.getResultHandler().succeeded(workflowInstance, result.getResult());
     }
 
     @Override
-    public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) {
+    public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) throws Exception {
         result.set(new ActionResult(arguments));
     }
 

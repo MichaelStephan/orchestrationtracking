@@ -59,18 +59,15 @@ public class SplitCompensationActionInstance extends SimpleActionInstance {
     }
 
     @Override
-    public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) {
-        new Thread(() -> {
-            results.add(new ActionResult(arguments));
-            if (count.decrementAndGet() == 0) {
-                // TODO make nicer !!!
-                Map<String, Object> consolidatedArguments = new HashMap<>();
-                results.stream().forEach((argument) -> {
-                    consolidatedArguments.putAll(argument.getResult());
-                });
+    public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) throws Exception {
+        results.add(new ActionResult(arguments));
+        if (count.decrementAndGet() == 0) {
+            Map<String, Object> consolidatedArguments = new HashMap<>();
+            results.stream().forEach((argument) -> {
+                consolidatedArguments.putAll(argument.getResult());
+            });
 
-                result.set(new ActionResult(new Arguments(consolidatedArguments)));
-            }
-        }).start();
+            result.set(new ActionResult(new Arguments(consolidatedArguments)));
+        }
     }
 }

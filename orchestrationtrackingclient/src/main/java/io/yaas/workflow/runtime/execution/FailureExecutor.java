@@ -26,6 +26,7 @@ public class FailureExecutor implements ExecutionStrategy {
     @Override
     public void error(WorkflowInstance workflow, ActionInstance action, Arguments arguments, Throwable cause) {
         workflow.error();
+        workflow.getResultHandler().failed(workflow, cause);
     }
 
     @Override
@@ -34,7 +35,7 @@ public class FailureExecutor implements ExecutionStrategy {
     }
 
     @Override
-    public ExecutionStrategy getActionErrorStrategy() {
+    public ExecutionStrategy getFallbackExecutionStrategy() {
         return null;
     }
 

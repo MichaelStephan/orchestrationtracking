@@ -4,6 +4,7 @@ import io.yaas.workflow.Workflow;
 import io.yaas.workflow.action.ActionResult;
 import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.action.SimpleAction;
+import io.yaas.workflow.runtime.LoggingWorkflowEngineResultHandler;
 import io.yaas.workflow.runtime.WorkflowEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,10 +79,10 @@ public class Main {
 
         capturePayment.setCompensationFunction((arguments) -> {
             // arguments.getError().getMessage()
-//            throw new RuntimeException("bum2");
+            throw new RuntimeException("bum2");
 
-            System.out.println("In capturePayment an issue is occured !!!");
-            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
+//            System.out.println("In capturePayment an issue is occured !!!");
+//            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
         });
         // "create order"
 
@@ -107,11 +108,11 @@ public class Main {
         calculateCartPrice.addAction(capturePayment);
         capturePayment.addAction(createOrder);
 
-//        w.execute(new WorkflowEngine(getTrackingClientEndpoint()), new Arguments(new ImmutableMap.Builder<String, Object>()
-//                .put("cartid", "123")
-//                .build()));
+        w.execute(new WorkflowEngine(getTrackingClientEndpoint()), new Arguments(new ImmutableMap.Builder<String, Object>()
+                .put("cartid", "123")
+                .build()), new LoggingWorkflowEngineResultHandler());
 
-        w.compensate(new WorkflowEngine(getTrackingClientEndpoint()), "fa4f2e28-458e-4ccc-b553-cbcb7c37028e");
+//        w.compensate(new WorkflowEngine(getTrackingClientEndpoint()), "fa4f2e28-458e-4ccc-b553-cbcb7c37028e");
     }
 
     private static String getTrackingClientEndpoint() {

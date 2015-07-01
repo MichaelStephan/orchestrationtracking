@@ -36,7 +36,7 @@ public class SplitActionInstance extends SimpleActionInstance {
     }
 
     @Override
-    public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) {
+    public void execute(WorkflowInstance workflowInstance, Arguments arguments, SettableFuture<ActionResult> result) throws Exception {
         result.set(new ActionResult(arguments));
     }
 

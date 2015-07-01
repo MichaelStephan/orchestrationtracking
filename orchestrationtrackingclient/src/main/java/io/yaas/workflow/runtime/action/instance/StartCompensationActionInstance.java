@@ -21,5 +21,6 @@ public class StartCompensationActionInstance extends SimpleCompensationActionIns
     public void succeed(WorkflowInstance workflowInstance, ActionResult result) {
         super.succeed(workflowInstance, result);
         workflowInstance.compensated();
+        workflowInstance.getResultHandler().compensated(workflowInstance);
     }
 }

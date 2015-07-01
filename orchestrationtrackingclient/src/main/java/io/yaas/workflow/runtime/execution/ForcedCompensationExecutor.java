@@ -22,7 +22,6 @@ public class ForcedCompensationExecutor extends AbstractExecutor implements Exec
         String wid = workflow.getId();
         String aid = compensationActionInstance.getId();
 
-        // TODO !!!
         ActionBean lastCompenstationAction = workflow.getTrackingClient().getLastAction(wid, aid);
         if (lastCompenstationAction.astate != State.SUCCEEDED) {
             try {
@@ -48,7 +47,7 @@ public class ForcedCompensationExecutor extends AbstractExecutor implements Exec
         action.getCompensationActionInstance().error(workflow, cause);
     }
 
-    public ExecutionStrategy getActionErrorStrategy() {
+    public ExecutionStrategy getFallbackExecutionStrategy() {
         return new FailureExecutor();
     }
 
