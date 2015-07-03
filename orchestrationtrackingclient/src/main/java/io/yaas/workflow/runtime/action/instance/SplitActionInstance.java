@@ -17,7 +17,6 @@ public class SplitActionInstance extends SimpleActionInstance {
 
     private Object compensationActionInstanceLock = new Object();
 
-
     private int count;
 
     public SplitActionInstance(String id, SplitAction action, int count) {

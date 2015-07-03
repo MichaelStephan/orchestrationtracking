@@ -13,7 +13,7 @@ public class ActionResultTest extends TestCase {
 
     @Test
     public void testGetResult() throws Exception {
-        ActionResult result = new ActionResult(Arguments.EMPTY_ARGUMENTS);
+        ActionResult result = ActionResult.EMPTY_RESULT;
         assertEquals(Arguments.EMPTY_ARGUMENTS, result.getResult());
     }
 }

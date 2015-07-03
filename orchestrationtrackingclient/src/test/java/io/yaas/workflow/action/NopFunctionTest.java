@@ -11,6 +11,6 @@ public class NopFunctionTest {
 
     @Test
     public void testApply() throws Exception {
-
+        assertEquals(ActionResult.EMPTY_RESULT, new NopFunction().apply(Arguments.EMPTY_ARGUMENTS));
     }
 }

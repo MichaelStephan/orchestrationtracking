@@ -38,7 +38,7 @@ public class Main {
         getShoppingCart.setCompensationFunction((arguments) -> {
             // arguments.getError().getMessage()
             System.out.println("In getShoppingCart an issue is occured !!!");
-            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
+            return ActionResult.EMPTY_RESULT;
         });
 
         // "calculate cart price"
@@ -55,7 +55,7 @@ public class Main {
         calculateCartPrice.setCompensationFunction((arguments) -> {
             // arguments.getError().getMessage()
             System.out.println("in calculateCartPrice an issue is occured !!!");
-            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
+            return ActionResult.EMPTY_RESULT;
         });
         // "reserve stock"
 
@@ -67,7 +67,7 @@ public class Main {
         reserveStock.setCompensationFunction((arguments) -> {
             // arguments.getError().getMessage()
             System.out.println("In reserveStock an issue is occured !!!");
-            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
+            return ActionResult.EMPTY_RESULT;
         });
         // "capture payment"
 
@@ -97,7 +97,7 @@ public class Main {
         createOrder.setCompensationFunction((arguments) -> {
             // arguments.getError().getMessage()
             System.out.println("In createOrder an issue is occured !!!");
-            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
+            return ActionResult.EMPTY_RESULT;
         });
 
         Workflow w = new Workflow("Shopping Cart Checkout", 1);

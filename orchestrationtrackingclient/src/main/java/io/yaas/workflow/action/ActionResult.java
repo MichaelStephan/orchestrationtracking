@@ -14,4 +14,6 @@ public class ActionResult {
     public Arguments getResult() {
         return result;
     }
+
+    public static ActionResult EMPTY_RESULT = new ActionResult(Arguments.EMPTY_ARGUMENTS);
 }

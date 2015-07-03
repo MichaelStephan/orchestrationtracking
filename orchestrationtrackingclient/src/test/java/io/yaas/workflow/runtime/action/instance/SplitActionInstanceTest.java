@@ -1,7 +1,15 @@
 package io.yaas.workflow.runtime.action.instance;
 
+import com.google.common.util.concurrent.SettableFuture;
+import io.yaas.workflow.Workflow;
+import io.yaas.workflow.action.ActionResult;
+import io.yaas.workflow.action.Arguments;
+import io.yaas.workflow.action.SplitAction;
+import io.yaas.workflow.runtime.ActionInstance;
+import org.junit.Before;
 import org.junit.Test;
 
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
 /**
@@ -9,19 +17,32 @@ import static org.junit.Assert.*;
  */
 public class SplitActionInstanceTest {
 
-    @Test
-    public void testGetCompensationActionInstance() throws Exception {
+    private Workflow workflow;
+    private WorkflowInstance workflowInstance;
+    private SplitAction splitAction;
+    private ActionInstance splitActionInstance;
 
+    @Before
+    public void setUp() {
+        workflow = createMock(Workflow.class);
+        workflowInstance = createMock(WorkflowInstance.class);
+        splitAction = new SplitAction(workflow);
+        splitActionInstance = new SplitActionInstance("2", splitAction, 2);
     }
 
     @Test
-    public void testCreateCompensationActionInstance() throws Exception {
-
+    public void testGetCompensationActionInstance() throws Exception {
+        ActionInstance splitCompenstionActionInstance = splitActionInstance.getCompensationActionInstance();
+        assertNotNull(splitCompenstionActionInstance);
+        assertEquals(SplitCompensationActionInstance.class, splitCompenstionActionInstance.getClass());
     }
 
     @Test
     public void testExecute() throws Exception {
-
+        SettableFuture<ActionResult> result = SettableFuture.create();
+        splitActionInstance.execute(workflowInstance, Arguments.EMPTY_ARGUMENTS, result);
+        assertTrue(result.isDone());
+        assertEquals(Arguments.EMPTY_ARGUMENTS, result.get().getResult());
     }
 
     @Test
@@ -31,27 +52,17 @@ public class SplitActionInstanceTest {
 
     @Test
     public void testGetId() throws Exception {
-
+        assertEquals("2_split_1.0", splitActionInstance.getId());
     }
 
     @Test
     public void testGetName() throws Exception {
-
+        assertEquals("split", splitActionInstance.getName());
     }
 
     @Test
     public void testGetVersion() throws Exception {
-
-    }
-
-    @Test
-    public void testCreateCompensationActionInstance1() throws Exception {
-
-    }
-
-    @Test
-    public void testGetCompensationActionInstance1() throws Exception {
-
+        assertEquals("1.0", splitActionInstance.getVersion());
     }
 
     @Test
@@ -71,21 +82,6 @@ public class SplitActionInstanceTest {
 
     @Test
     public void testGetAction() throws Exception {
-
-    }
-
-    @Test
-    public void testRestore1() throws Exception {
-
-    }
-
-    @Test
-    public void testGetName1() throws Exception {
-
-    }
-
-    @Test
-    public void testGetVersion1() throws Exception {
-
+        assertEquals(splitAction, splitActionInstance.getAction());
     }
 }

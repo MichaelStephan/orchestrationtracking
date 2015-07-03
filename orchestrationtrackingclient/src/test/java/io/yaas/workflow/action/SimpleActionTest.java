@@ -158,7 +158,7 @@ public class SimpleActionTest {
         Action a = new SimpleAction("A", "1.0");
 //        assertNotNull(a.getActionFunction());
         a.setActionFunction((arguments) -> {
-            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
+            return ActionResult.EMPTY_RESULT;
         });
         assertNotNull(a.getActionFunction());
     }
@@ -168,7 +168,7 @@ public class SimpleActionTest {
         Action a = new SimpleAction("A", "1.0");
         assertNotNull(a.getCompensationFunction());
         a.setCompensationFunction((arguments) -> {
-            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
+            return ActionResult.EMPTY_RESULT;
         });
         assertNotNull(a.getCompensationFunction());
     }
@@ -178,7 +178,7 @@ public class SimpleActionTest {
         Action a = new SimpleAction("A", "1.0");
         assertNotNull(a.getCompensationFunction());
         a.setCompensationFunction((arguments) -> {
-            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
+            return ActionResult.EMPTY_RESULT;
         });
         assertNotNull(a.getCompensationFunction());
     }
@@ -213,7 +213,7 @@ public class SimpleActionTest {
     @Test
     public void testGetActionFunction() throws Exception {
         Action a = new SimpleAction("A", "1.0", (arguments) -> {
-            return new ActionResult(Arguments.EMPTY_ARGUMENTS);
+            return ActionResult.EMPTY_RESULT;
         });
         assertNotNull(a.getActionFunction());
     }

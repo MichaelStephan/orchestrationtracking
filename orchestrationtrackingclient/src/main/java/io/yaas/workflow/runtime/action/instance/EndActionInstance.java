@@ -30,6 +30,6 @@ public class EndActionInstance extends SimpleActionInstance {
 
     @Override
     public ActionResult restore(WorkflowInstance workflowInstance) {
-        return new ActionResult(new Arguments(Collections.emptyMap()));
+        return ActionResult.EMPTY_RESULT;
     }
 }

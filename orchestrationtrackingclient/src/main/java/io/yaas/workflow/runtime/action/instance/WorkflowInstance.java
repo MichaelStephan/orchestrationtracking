@@ -17,21 +17,9 @@ public class WorkflowInstance {
 
     private String id;
 
-    public ActionInstance getStart() {
-        return start;
-    }
-
-    public ActionInstance getEnd() {
-        return end;
-    }
-
     private ActionInstance start;
 
     private ActionInstance end;
-
-    public WorkflowTrackingClient getTrackingClient() {
-        return client;
-    }
 
     private WorkflowTrackingClient client;
 
@@ -55,8 +43,20 @@ public class WorkflowInstance {
         return workflow;
     }
 
+    public ActionInstance getStart() {
+        return start;
+    }
+
+    public ActionInstance getEnd() {
+        return end;
+    }
+
     public WorkflowEngineResultHandler getResultHandler() {
         return resultHandler;
+    }
+
+    public WorkflowTrackingClient getTrackingClient() {
+        return client;
     }
 
     public String getId() {

@@ -46,27 +46,12 @@ public class MergeActionInstanceTest extends TestCase {
     }
 
     @Test
-    public void testStart1() throws Exception {
-
-    }
-
-    @Test
     public void testSucceed() throws Exception {
 
     }
 
     @Test
     public void testError() throws Exception {
-
-    }
-
-    @Test
-    public void testExecute1() throws Exception {
-
-    }
-
-    @Test
-    public void testGetName1() throws Exception {
 
     }
 

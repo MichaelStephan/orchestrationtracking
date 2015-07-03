@@ -38,15 +38,7 @@ public class SimpleActionInstanceTest {
         actionInstanceA = new SimpleActionInstance("3", actionA);
         actionInstanceB = new SimpleActionInstance("4", actionB);
         trackingClient = createMock(WorkflowTrackingClient.class);
-//        expect(trackingClient.createAction(isA(ActionBean.class))).andStubReturn(isA(ActionBean.class));
-//        expect(trackingClient.updateAction(isA(ActionBean.class))).andStubReturn(isA(ActionBean.class));
-//        expect(trackingClient.getLastActionData(isA(String.class), isA(String.class))).andStubReturn(isA(ResultBean.class));
-//        replay(trackingClient);
-
         workflowInstance = createMock(WorkflowInstance.class);
-//        expect(workflowInstance.getId()).andStubReturn(isA(String.class));
-//        expect(workflowInstance.getTrackingClient()).andStubReturn(trackingClient);
-//        replay(workflowInstance);
     }
 
     @Test
@@ -90,7 +82,7 @@ public class SimpleActionInstanceTest {
         replay(trackingClient);
         replay(workflowInstance);
 
-        actionInstanceA.succeed(workflowInstance, new ActionResult(Arguments.EMPTY_ARGUMENTS));
+        actionInstanceA.succeed(workflowInstance, ActionResult.EMPTY_RESULT);
 
         verify(trackingClient);
         verify(workflowInstance);
