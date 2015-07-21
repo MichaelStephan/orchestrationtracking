@@ -4,7 +4,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import io.yaas.workflow.action.ActionResult;
 import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.runtime.ActionInstance;
-import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
+import io.yaas.workflow.runtime.WorkflowInstance;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -31,7 +31,7 @@ public class FailureExecutor implements ExecutionStrategy {
 
     @Override
     public void execute(WorkflowInstance workflow, ActionInstance action, Arguments arguments, SettableFuture<ActionResult> result) {
-        error(workflow, action, Arguments.EMPTY_ARGUMENTS, new UnknownError());
+        error(workflow, action, Arguments.EMPTY_ARGUMENTS, new UnknownError(""));
     }
 
     @Override

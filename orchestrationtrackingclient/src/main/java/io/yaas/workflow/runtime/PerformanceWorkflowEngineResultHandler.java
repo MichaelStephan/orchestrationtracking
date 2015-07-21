@@ -1,7 +1,6 @@
 package io.yaas.workflow.runtime;
 
 import io.yaas.workflow.action.Arguments;
-import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,10 +9,9 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Created by i303874 on 7/1/15.
  */
-public class PerformanceWorkflowEngineResultHandler implements WorkflowEngineResultHandler {
+public class PerformanceWorkflowEngineResultHandler extends ChainedWorkflowEngineResultHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(PerformanceWorkflowEngineResultHandler.class);
-
 
     private final static long INTERVAL = 5000;
 
@@ -21,18 +19,26 @@ public class PerformanceWorkflowEngineResultHandler implements WorkflowEngineRes
 
     AtomicLong count = new AtomicLong();
 
+    public PerformanceWorkflowEngineResultHandler() {
+        super();
+    }
+
+    public PerformanceWorkflowEngineResultHandler(WorkflowEngineResultHandler wrappedHandler) {
+        super(wrappedHandler);
+    }
+
     @Override
-    public void succeeded(WorkflowInstance workflow, Arguments results) {
+    public void _succeeded(WorkflowInstance workflow, Arguments results) {
         update();
     }
 
     @Override
-    public void failed(WorkflowInstance workflow, Throwable cause) {
+    public void _failed(WorkflowInstance workflow, Throwable cause) {
         update();
     }
 
     @Override
-    public void compensated(WorkflowInstance workflow) {
+    public void _compensated(WorkflowInstance workflow) {
         update();
     }
 

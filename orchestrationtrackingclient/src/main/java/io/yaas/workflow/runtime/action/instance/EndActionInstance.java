@@ -4,8 +4,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import io.yaas.workflow.action.Action;
 import io.yaas.workflow.action.ActionResult;
 import io.yaas.workflow.action.Arguments;
-
-import java.util.Collections;
+import io.yaas.workflow.runtime.WorkflowInstance;
 
 /**
  * Created by i303874 on 4/29/15.

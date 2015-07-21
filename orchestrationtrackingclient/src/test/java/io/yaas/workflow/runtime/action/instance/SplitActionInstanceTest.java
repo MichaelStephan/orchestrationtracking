@@ -6,6 +6,7 @@ import io.yaas.workflow.action.ActionResult;
 import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.action.SplitAction;
 import io.yaas.workflow.runtime.ActionInstance;
+import io.yaas.workflow.runtime.WorkflowInstance;
 import org.junit.Before;
 import org.junit.Test;
 

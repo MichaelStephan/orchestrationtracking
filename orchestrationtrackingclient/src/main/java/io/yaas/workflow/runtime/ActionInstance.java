@@ -5,7 +5,6 @@ import io.yaas.workflow.action.Action;
 import io.yaas.workflow.action.ActionResult;
 import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.graph.Node;
-import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 
 /**
  * Created by i303874 on 4/28/15.

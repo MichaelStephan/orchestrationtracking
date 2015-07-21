@@ -1,4 +1,4 @@
-package io.yaas.workflow.runtime.action.instance;
+package io.yaas.workflow.runtime;
 
 import io.yaas.workflow.Workflow;
 import io.yaas.workflow.runtime.ActionInstance;

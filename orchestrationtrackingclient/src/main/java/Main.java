@@ -1,4 +1,3 @@
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import io.yaas.workflow.Workflow;
 import io.yaas.workflow.action.ActionResult;
@@ -13,6 +12,8 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Created by i303874 on 3/10/15.
  */
@@ -24,7 +25,7 @@ public class Main {
         // takes cartId, returns cart (productId: quantity)
 
         SimpleAction getShoppingCart = new SimpleAction("Get Shopping Cart", "1.0", (arguments) -> {
-            String cartId = Preconditions.checkNotNull(String.class.cast(arguments.get("cartid")));
+            String cartId = checkNotNull(String.class.cast(arguments.get("cartid")));
 
             return new ActionResult(new Arguments(new ImmutableMap.Builder<String, Object>()
                     .putAll(arguments)
@@ -44,7 +45,7 @@ public class Main {
         // "calculate cart price"
 
         SimpleAction calculateCartPrice = new SimpleAction("Calculate Cart Price", "1.0", (arguments) -> {
-            String cartId = Preconditions.checkNotNull(String.class.cast(arguments.get("cartid")));
+            String cartId = checkNotNull(String.class.cast(arguments.get("cartid")));
 
             return new ActionResult(new Arguments(new ImmutableMap.Builder<String, Object>()
                     .putAll(arguments)
@@ -60,7 +61,7 @@ public class Main {
         // "reserve stock"
 
         SimpleAction reserveStock = new SimpleAction("Reserve Stock", "1.0", (arguments) -> {
-            Set<Map.Entry<String, String>> cartEntries = Preconditions.checkNotNull(Map.class.cast(arguments.get("cart"))).entrySet();
+            Set<Map.Entry<String, String>> cartEntries = checkNotNull(Map.class.cast(arguments.get("cart"))).entrySet();
             return new ActionResult(arguments);
         });
 
@@ -72,7 +73,7 @@ public class Main {
         // "capture payment"
 
         SimpleAction capturePayment = new SimpleAction("Capture Payment", "1.0", (arguments) -> {
-            BigDecimal cartPrice = Preconditions.checkNotNull(BigDecimal.class.cast(arguments.get("cartprice")));
+            BigDecimal cartPrice = checkNotNull(BigDecimal.class.cast(arguments.get("cartprice")));
 
             return new ActionResult(arguments);
         });
@@ -87,11 +88,11 @@ public class Main {
         // "create order"
 
         SimpleAction createOrder = new SimpleAction("Create Order", "1.0", (arguments) -> {
-            String cartId = Preconditions.checkNotNull(String.class.cast(arguments.get("cartid")));
+            String cartId = checkNotNull(String.class.cast(arguments.get("cartid")));
 
-            throw new RuntimeException("bum");
+            //throw new RuntimeException("bum");
 
-//            return new ActionResult(arguments);
+            return new ActionResult(arguments);
         });
 
         createOrder.setCompensationFunction((arguments) -> {
@@ -101,6 +102,10 @@ public class Main {
         });
 
         Workflow w = new Workflow("Shopping Cart Checkout", 1);
+        w.setErrorHandler((arguments) -> {
+            System.out.println("Workflow failed!");
+            return ActionResult.EMPTY_RESULT;
+        });
         w.getStartAction().addAction(getShoppingCart);
         getShoppingCart.addAction(calculateCartPrice);
         getShoppingCart.addAction(reserveStock);
@@ -118,7 +123,7 @@ public class Main {
     private static String getTrackingClientEndpoint() {
         String trackingClient = System.getenv("TRACKER_SERVICE");
         if (trackingClient == null) {
-            trackingClient = "http://localhost:8080";
+            trackingClient = "http://localhost:9080";
         }
         return trackingClient;
     }

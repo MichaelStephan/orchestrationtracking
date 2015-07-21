@@ -3,14 +3,12 @@ package io.yaas.workflow.runtime.action.instance;
 import static org.easymock.EasyMock.*;
 
 import com.google.common.util.concurrent.SettableFuture;
-import io.yaas.workflow.Workflow;
 import io.yaas.workflow.action.*;
 import io.yaas.workflow.runtime.ActionInstance;
+import io.yaas.workflow.runtime.WorkflowInstance;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 import io.yaas.workflow.runtime.tracker.model.ActionBean;
 import io.yaas.workflow.runtime.tracker.model.ResultBean;
-import org.easymock.EasyMock;
-import org.easymock.Mock;
 import org.junit.Before;
 import org.junit.Test;
 

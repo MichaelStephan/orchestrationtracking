@@ -74,7 +74,8 @@ public class OrchestrationTrackingServiceAPIVerticle extends Verticle {
                 container.logger().info("received GET /workflows " + body);
                 vertx.eventBus().sendWithTimeout(address, body, Common.COMMUNICATION_TIMEOUT, (AsyncResult<Message<JsonObject>> asyncResult) -> {
                     Common.checkResponse(vertx, container, asyncResult, (ignore) -> {
-                        req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end(asyncResult.result().body().getObject("result").encode());
+                        container.logger().debug("asyncResult.result().body().getArray(\"result\")=" + asyncResult.result().body().getArray("result").encode());
+                        req.response().setStatusCode(200).putHeader("Content-Type", "application/json").end(asyncResult.result().body().getArray("result").asArray().encode());
                     }, (ignore) -> {
                         req.response().setStatusCode(500).end();
                     });

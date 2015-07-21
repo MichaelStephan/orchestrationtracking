@@ -2,6 +2,7 @@ package io.yaas.workflow.runtime.action.instance;
 
 import io.yaas.workflow.action.ActionResult;
 import io.yaas.workflow.runtime.ActionInstance;
+import io.yaas.workflow.runtime.WorkflowInstance;
 
 /**
  * Created by D032705 on 13.05.2015.

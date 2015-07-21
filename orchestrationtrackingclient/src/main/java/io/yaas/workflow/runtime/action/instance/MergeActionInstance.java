@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import io.yaas.workflow.action.ActionResult;
 import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.action.MergeAction;
+import io.yaas.workflow.runtime.WorkflowInstance;
 import io.yaas.workflow.runtime.tracker.model.ActionBean;
 
 import java.util.Collections;

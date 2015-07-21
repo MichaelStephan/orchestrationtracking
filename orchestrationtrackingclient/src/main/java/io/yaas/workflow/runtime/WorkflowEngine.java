@@ -7,7 +7,6 @@ import io.yaas.workflow.Workflow;
 import io.yaas.workflow.action.ActionResult;
 import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.runtime.action.instance.EndActionInstance;
-import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 import io.yaas.workflow.runtime.execution.ExecutionStrategy;
 import io.yaas.workflow.runtime.execution.ForcedCompensationExecutor;
 import io.yaas.workflow.runtime.execution.StandardExecutor;

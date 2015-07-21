@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import io.yaas.workflow.action.*;
 import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.WorkflowEngineResultHandler;
+import io.yaas.workflow.runtime.WorkflowInstance;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 import io.yaas.workflow.runtime.tracker.model.ActionBean;
 import org.junit.Before;

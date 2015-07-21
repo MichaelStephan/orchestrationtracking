@@ -1,23 +1,28 @@
 package io.yaas.workflow.runtime;
 
 import io.yaas.workflow.action.Arguments;
-import io.yaas.workflow.runtime.action.instance.WorkflowInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Created by i303874 on 7/1/15.
  */
-public class LoggingWorkflowEngineResultHandler implements WorkflowEngineResultHandler {
+public class LoggingWorkflowEngineResultHandler extends ChainedWorkflowEngineResultHandler {
     private static final Logger logger = LoggerFactory.getLogger(LoggingWorkflowEngineResultHandler.class);
 
+    public LoggingWorkflowEngineResultHandler() {
+        super();
+    }
+    public LoggingWorkflowEngineResultHandler(WorkflowEngineResultHandler wrappedHandler) {
+        super(wrappedHandler);
+    }
     @Override
-    public void succeeded(WorkflowInstance workflow, Arguments results) {
+    public void _succeeded(WorkflowInstance workflow, Arguments results) {
         logger.info("workflow " + workflow.getId() + " succeeded");
     }
 
     @Override
-    public void failed(WorkflowInstance workflow, Throwable cause) {
+    public void _failed(WorkflowInstance workflow, Throwable cause) {
         try {
             logger.error("workflow " + workflow.getId() + " failed", cause);
         } catch (Exception e) {
@@ -26,7 +31,7 @@ public class LoggingWorkflowEngineResultHandler implements WorkflowEngineResultH
     }
 
     @Override
-    public void compensated(WorkflowInstance workflow) {
+    public void _compensated(WorkflowInstance workflow) {
         logger.warn("workflow " + workflow.getId() + " compensated");
     }
 }

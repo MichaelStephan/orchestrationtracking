@@ -5,6 +5,7 @@ import io.yaas.workflow.action.Action;
 import io.yaas.workflow.action.ActionResult;
 import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.runtime.ActionInstance;
+import io.yaas.workflow.runtime.WorkflowInstance;
 import io.yaas.workflow.runtime.tracker.model.ActionBean;
 import io.yaas.workflow.runtime.tracker.model.ResultBean;
 import io.yaas.workflow.runtime.tracker.model.State;
