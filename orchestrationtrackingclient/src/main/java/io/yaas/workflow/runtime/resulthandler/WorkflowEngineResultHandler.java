@@ -1,6 +1,7 @@
-package io.yaas.workflow.runtime;
+package io.yaas.workflow.runtime.resulthandler;
 
 import io.yaas.workflow.action.Arguments;
+import io.yaas.workflow.runtime.WorkflowInstance;
 
 /**
  * Created by i303874 on 7/1/15.

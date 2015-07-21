@@ -1,8 +1,7 @@
 package io.yaas.workflow.runtime;
 
 import io.yaas.workflow.Workflow;
-import io.yaas.workflow.runtime.ActionInstance;
-import io.yaas.workflow.runtime.WorkflowEngineResultHandler;
+import io.yaas.workflow.runtime.resulthandler.WorkflowEngineResultHandler;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
 import io.yaas.workflow.runtime.tracker.model.State;
 import io.yaas.workflow.runtime.tracker.model.WorkflowBean;

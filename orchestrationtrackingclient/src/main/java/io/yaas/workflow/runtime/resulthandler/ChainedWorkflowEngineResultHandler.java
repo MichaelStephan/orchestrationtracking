@@ -1,6 +1,7 @@
-package io.yaas.workflow.runtime;
+package io.yaas.workflow.runtime.resulthandler;
 
 import io.yaas.workflow.action.Arguments;
+import io.yaas.workflow.runtime.WorkflowInstance;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

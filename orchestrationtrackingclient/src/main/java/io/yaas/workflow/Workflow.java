@@ -3,7 +3,7 @@ package io.yaas.workflow;
 import io.yaas.workflow.action.*;
 import io.yaas.workflow.runtime.ActionInstance;
 import io.yaas.workflow.runtime.WorkflowEngine;
-import io.yaas.workflow.runtime.WorkflowEngineResultHandler;
+import io.yaas.workflow.runtime.resulthandler.WorkflowEngineResultHandler;
 import io.yaas.workflow.runtime.action.instance.*;
 
 import java.util.HashMap;
@@ -81,7 +81,7 @@ public class Workflow {
     public void execute(WorkflowEngine engine, Arguments arguments, WorkflowEngineResultHandler result) {
         ActionInstance start = prepareExecute();
 
-//        print(start);
+        print(start);
 
         engine.runWorkflow(this, start, arguments, result);
     }

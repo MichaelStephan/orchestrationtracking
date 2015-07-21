@@ -3,7 +3,7 @@ import io.yaas.workflow.Workflow;
 import io.yaas.workflow.action.ActionResult;
 import io.yaas.workflow.action.Arguments;
 import io.yaas.workflow.action.SimpleAction;
-import io.yaas.workflow.runtime.LoggingWorkflowEngineResultHandler;
+import io.yaas.workflow.runtime.resulthandler.LoggingWorkflowEngineResultHandler;
 import io.yaas.workflow.runtime.WorkflowEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
