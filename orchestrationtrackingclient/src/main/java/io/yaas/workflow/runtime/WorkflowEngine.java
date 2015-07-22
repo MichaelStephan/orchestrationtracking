@@ -12,6 +12,8 @@ import io.yaas.workflow.runtime.execution.ForcedCompensationExecutor;
 import io.yaas.workflow.runtime.execution.StandardExecutor;
 import io.yaas.workflow.runtime.resulthandler.WorkflowEngineResultHandler;
 import io.yaas.workflow.runtime.tracker.client.WorkflowTrackingClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -19,6 +21,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Created by i303874 on 3/11/15.
  */
 public class WorkflowEngine {
+
+    private static final Logger logger = LoggerFactory.getLogger(WorkflowEngine.class);
+
 
     private WorkflowTrackingClient _trackingClient;
 
@@ -61,6 +66,8 @@ public class WorkflowEngine {
 
             @Override
             public void onFailure(Throwable cause) {
+                logger.error("workflow " + workflow.getName() + " failed", cause);
+
                 executor.error(workflow, action, arguments, cause);
                 arguments.addError(cause);
 
